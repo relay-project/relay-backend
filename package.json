@@ -1,0 +1,35 @@
+{
+  "name": "relay-backend",
+  "version": "1.0.0",
+  "description": "Relay backend application",
+  "private": true,
+  "author": {
+    "name": "Peter Dyumin",
+    "url": "https://github.com/peterdee"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "nodemon",
+    "lint": "eslint",
+    "start": "npm run build && node ./build/index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "scryptwrap": "^2.0.0",
+    "socket.io": "^4.5.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.40.1",
+    "@typescript-eslint/parser": "^5.40.1",
+    "eslint": "^8.25.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "nodemon": "^2.0.20",
+    "typescript": "^4.8.4"
+  }
+}

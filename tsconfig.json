@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "commonjs",
+    "outDir": "./build",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "target": "ES2021"
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
