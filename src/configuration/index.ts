@@ -4,6 +4,15 @@ export const ALLOWED_ORIGINS: string[] = ev.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map((value: string): string => value.trim())
   : [];
 
+export const DATABASE = {
+  dialect: 'postgres',
+  logging: false,
+  name: process.env.DATABASE_NAME,
+  password: process.env.DATABASE_PASSWORD,
+  port: Number(process.env.DATABASE_PORT),
+  user: process.env.DATABASE_USER,
+};
+
 export const ENVS = {
   development: 'development',
   production: 'production',
@@ -33,4 +42,14 @@ export const RESPONSE_STATUSES = {
   internalServerError: 500,
   ok: 200,
   unauthorized: 401,
+};
+
+export const ROLES = {
+  admin: 'admin',
+  user: 'user',
+};
+
+export const TABLES = {
+  Passwords: 'Passwords',
+  Users: 'Users',
 };

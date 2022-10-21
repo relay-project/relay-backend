@@ -5,10 +5,13 @@ import {
   EVENTS,
   PORT,
 } from './configuration';
+import database from './database';
 import signInHandler from './handlers/sign-in.handler';
 import log from './utilities/logger';
 
-export default function createServer(): void {
+export default async function createServer(): Promise<void> {
+  await database.connect();
+
   const server = new IOServer({
     cors: {
       credentials: true,
@@ -34,5 +37,5 @@ export default function createServer(): void {
   );
 
   server.listen(PORT);
-  log(`Launched on port ${PORT}`);
+  log(`RELAY launched on port ${PORT}`);
 }
