@@ -1,11 +1,12 @@
-import * as joi from 'joi';
+import joi from 'joi';
+
+import { MAX_LOGIN_LENGTH } from '../configuration';
 
 export default joi.object({
   login: joi
     .string()
     .alphanum()
-    .max(32)
-    .min(2)
+    .max(MAX_LOGIN_LENGTH)
     .required(),
   password: joi
     .string()

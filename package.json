@@ -11,7 +11,8 @@
     "build": "tsc -p tsconfig.json",
     "dev": "nodemon",
     "lint": "eslint",
-    "start": "npm run build && node ./build/index.js"
+    "start": "npm run build && node ./build/index.js",
+    "sync": "npm run build && node -r dotenv/config ./build/database/sync-database.js"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.9",
+    "@types/node": "^18.11.3",
     "@types/sequelize": "^4.28.14",
     "@typescript-eslint/eslint-plugin": "^5.40.1",
     "@typescript-eslint/parser": "^5.40.1",

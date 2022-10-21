@@ -11,6 +11,7 @@ import log from './utilities/logger';
 
 export default async function createServer(): Promise<void> {
   await database.connect();
+  await database.registerModels();
 
   const server = new IOServer({
     cors: {

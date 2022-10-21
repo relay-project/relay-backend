@@ -24,6 +24,8 @@ export const EVENTS = {
   SIGN_IN: 'sign-in',
 };
 
+export const MAX_LOGIN_LENGTH = 32;
+
 export const {
   NODE_ENV = ENVS.development,
   TOKEN_SECRET,
