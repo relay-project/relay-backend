@@ -11,8 +11,26 @@ export const ENVS = {
 
 export const EVENTS = {
   CONNECTION: 'connection',
+  DISCONNECT: 'disconnect',
+  SIGN_IN: 'sign-in',
 };
 
-export const { NODE_ENV = ENVS.development } = ev;
+export const {
+  NODE_ENV = ENVS.development,
+  TOKEN_SECRET,
+} = ev;
 
 export const PORT = Number(ev.PORT) || 5000;
+
+export const RESPONSE_MESSAGES = {
+  internalServerError: 'INTERNAL_SERVER_ERROR',
+  ok: 'OK',
+  validationError: 'VALIDATION_ERROR',
+};
+
+export const RESPONSE_STATUSES = {
+  badRequest: 400,
+  internalServerError: 500,
+  ok: 200,
+  unauthorized: 401,
+};

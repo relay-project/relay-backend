@@ -6,6 +6,6 @@ const logger = new Console(process.stdout, process.stderr);
 
 export default function log(...message: any[]): void {
   if (NODE_ENV === ENVS.development) {
-    logger.log(`[RLBN - ${new Date().toISOString()}] ${message}`);
+    logger.log(`[RELAY - ${new Date().toISOString()}] ${message}`);
   }
 }
