@@ -1,22 +1,47 @@
-'use strict';
+const TABLE_NAME = 'secrets';
 
-/** @type {import('sequelize-cli').Migration} */
+/** @type { import('sequelize-cli').Migration } */
 module.exports = {
-  async up (queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
+  async down(queryInterface) {
+    return queryInterface.dropTable(TABLE_NAME);
   },
-
-  async down (queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
-  }
+  async up(queryInterface, Sequelize) {
+    return queryInterface.createTable(
+      TABLE_NAME,
+      {
+        createdAt: {
+          allowNull: false,
+          defaultValue: Sequelize.fn('now'),
+          field: 'created_at',
+          type: Sequelize.DATE,
+        },
+        secret: {
+          type: Sequelize.STRING(255),
+        },
+        id: {
+          allowNull: false,
+          autoIncrement: true,
+          primaryKey: true,
+          type: Sequelize.INTEGER,
+          unique: true,
+        },
+        userId: {
+          field: 'user_id',
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+          references: {
+            key: 'id',
+            model: 'users',
+          },
+          type: Sequelize.INTEGER,
+        },
+        updatedAt: {
+          allowNull: false,
+          defaultValue: Sequelize.fn('now'),
+          field: 'updated_at',
+          type: Sequelize.DATE,
+        },
+      },
+    );
+  },
 };

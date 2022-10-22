@@ -6,8 +6,9 @@ import {
 import { readdir } from 'fs/promises';
 
 import createDatabase from './create-database';
-import { DATABASE } from '../configuration';
+import { DATABASE, MIGRATIONS_ON_STARTUP } from '../configuration';
 import log from '../utilities/logger';
+import runMigrations from './run-migrations';
 
 class Database {
   Instance: null | Sequelize;
@@ -22,6 +23,9 @@ class Database {
     }
 
     await createDatabase(DATABASE.name);
+    if (MIGRATIONS_ON_STARTUP === 'enabled') {
+      await runMigrations();
+    }
 
     this.Instance = new Sequelize({
       database: DATABASE.name,

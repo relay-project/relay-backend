@@ -7,10 +7,7 @@
   "extends": [
     "airbnb-base"
   ],
-  "ignorePatterns": [
-    "build",
-    "database"
-  ],
+  "ignorePatterns": ["build"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 12,

@@ -6,8 +6,8 @@ import {
   PORT,
 } from './configuration';
 import database from './database';
-import signInHandler from './handlers/sign-in.handler';
 import log from './utilities/logger';
+import signInHandler from './handlers/sign-in.handler';
 
 export default async function createServer(): Promise<void> {
   await database.connect();

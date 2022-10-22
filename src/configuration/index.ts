@@ -28,6 +28,7 @@ export const EVENTS = {
 export const MAX_LOGIN_LENGTH = 32;
 
 export const {
+  MIGRATIONS_ON_STARTUP = 'enabled',
   NODE_ENV = ENVS.development,
   TOKEN_SECRET,
 } = ev;
