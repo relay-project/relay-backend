@@ -1,13 +1,13 @@
 import type { Socket } from 'socket.io';
 import type { ValidationResult } from 'joi';
 
-import { createToken } from '../utilities/jwt';
-import CustomError from '../utilities/custom-error';
+import { createToken } from '../../utilities/jwt';
+import CustomError from '../../utilities/custom-error';
 import {
   EVENTS,
-} from '../configuration';
-import response from '../utilities/response';
-import signInSchema from './sign-in.schema';
+} from '../../configuration';
+import response from '../../utilities/response';
+import { signInSchema } from './validation';
 
 interface SignInPayload {
   login: string;
@@ -28,7 +28,7 @@ export default async function signInHandler(
         details: validationError,
       });
     }
-    const token = await createToken(value.login);
+    const token = await createToken(value.login, 'str');
     return response({
       connection,
       event: EVENTS.SIGN_IN,

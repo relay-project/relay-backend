@@ -6,7 +6,12 @@ import {
 import { readdir } from 'fs/promises';
 
 import createDatabase from './create-database';
-import { DATABASE, MIGRATIONS_ON_STARTUP } from '../configuration';
+import {
+  DATABASE,
+  ENVS,
+  MIGRATIONS_ON_STARTUP,
+  NODE_ENV,
+} from '../configuration';
 import log from '../utilities/logger';
 import runMigrations from './run-migrations';
 
@@ -31,7 +36,9 @@ class Database {
       database: DATABASE.name,
       dialect: 'postgres',
       host: DATABASE.host,
-      logging: log,
+      logging: NODE_ENV === ENVS.development
+        ? log
+        : false,
       password: DATABASE.password,
       port: DATABASE.port,
       username: DATABASE.user,
@@ -80,7 +87,7 @@ class Database {
 
         const connectedModel: ModelStatic<Model> = createModel(this.Instance);
         this.Instance[tableName] = connectedModel;
-        return log(`- connected table ${tableName}`);
+        return log(`- loaded model ${tableName}`);
       },
     );
     return Promise.all(imports);

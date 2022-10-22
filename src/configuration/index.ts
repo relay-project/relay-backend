@@ -23,19 +23,24 @@ export const EVENTS = {
   CONNECTION: 'connection',
   DISCONNECT: 'disconnect',
   SIGN_IN: 'sign-in',
+  SIGN_UP: 'sign-up',
 };
 
 export const MAX_LOGIN_LENGTH = 32;
 
+export const MAX_RECOVERY_ANSWER_LENGTH = 256;
+
+export const MAX_RECOVERY_QUESTION_LENGTH = 256;
+
 export const {
   MIGRATIONS_ON_STARTUP = 'enabled',
   NODE_ENV = ENVS.development,
-  TOKEN_SECRET,
 } = ev;
 
 export const PORT = Number(ev.PORT) || 5000;
 
 export const RESPONSE_MESSAGES = {
+  emailAlreadyInUse: 'EMAIL_ALREADY_IN_USE',
   internalServerError: 'INTERNAL_SERVER_ERROR',
   ok: 'OK',
   validationError: 'VALIDATION_ERROR',
@@ -54,6 +59,7 @@ export const ROLES = {
 };
 
 export const TABLES = {
+  devices: 'devices',
   passwords: 'passwords',
   secrets: 'secrets',
   users: 'users',

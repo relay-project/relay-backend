@@ -13,7 +13,7 @@ class CustomError extends Error {
   status: number;
 
   constructor({
-    details,
+    details = null,
     info = RESPONSE_MESSAGES.validationError,
     status = RESPONSE_STATUSES.badRequest,
   }) {
