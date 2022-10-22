@@ -53,5 +53,6 @@ export const ROLES = {
 
 export const TABLES = {
   Passwords: 'Passwords',
+  Secrets: 'Secrets',
   Users: 'Users',
 };

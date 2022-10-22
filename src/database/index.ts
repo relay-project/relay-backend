@@ -47,7 +47,7 @@ class Database {
     return log('database connection closed');
   }
 
-  async registerModels(sync = false): Promise<null | void[]> {
+  async registerModels(): Promise<null | void[]> {
     if (!this.Instance) {
       throw new Error('Database is not connected!');
     }
@@ -74,12 +74,8 @@ class Database {
         }
 
         const connectedModel: ModelStatic<Model> = createModel(this.Instance);
-        if (sync) {
-          console.log('here');
-          await connectedModel.sync({ force: true });
-        }
         this.Instance[tableName] = connectedModel;
-        return log(`- registered table ${tableName}`);
+        return log(`- connected table ${tableName}`);
       },
     );
     return Promise.all(imports);

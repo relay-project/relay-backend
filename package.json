@@ -11,8 +11,7 @@
     "build": "tsc -p tsconfig.json",
     "dev": "nodemon",
     "lint": "eslint",
-    "start": "npm run build && node ./build/index.js",
-    "sync": "npm run build && node -r dotenv/config ./build/database/sync-database.js"
+    "start": "npm run build && node ./build/index.js"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -27,6 +26,7 @@
     "pg-hstore": "^2.3.4",
     "scryptwrap": "^2.0.0",
     "sequelize": "^6.25.3",
+    "sequelize-cli": "^6.5.1",
     "socket.io": "^4.5.3"
   },
   "devDependencies": {

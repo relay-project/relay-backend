@@ -7,13 +7,13 @@ import {
 
 import { TABLES } from '../../configuration';
 
-export const tableName = TABLES.Passwords;
+export const tableName = TABLES.Secrets;
 
 export const createModel = (connection: Sequelize): ModelStatic<Model> => {
   const model = connection.define(
     tableName,
     {
-      hash: {
+      secret: {
         type: DataTypes.STRING(255),
       },
       userId: {
