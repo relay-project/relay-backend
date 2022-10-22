@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Relay backend application",
   "private": true,
+  "license": "MIT",
   "author": {
     "name": "Peter Dyumin",
     "url": "https://github.com/peterdee"
@@ -11,13 +12,18 @@
     "build": "tsc -p tsconfig.json",
     "dev": "nodemon",
     "lint": "eslint",
+    "migrate": "npx sequelize-cli db:migrate",
+    "seed": "npx sequelize-cli db:seed:all",
     "start": "npm run build && node ./build/index.js"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/relay-project/relay-backend"
+  },
   "dependencies": {
     "dotenv": "^16.0.3",
     "joi": "^17.6.3",

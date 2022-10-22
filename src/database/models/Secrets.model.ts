@@ -7,7 +7,7 @@ import {
 
 import { TABLES } from '../../configuration';
 
-export const tableName = TABLES.Secrets;
+export const tableName = TABLES.secrets;
 
 export const createModel = (connection: Sequelize): ModelStatic<Model> => {
   const model = connection.define(
@@ -17,11 +17,12 @@ export const createModel = (connection: Sequelize): ModelStatic<Model> => {
         type: DataTypes.STRING(255),
       },
       userId: {
+        field: 'user_id',
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
         references: {
           key: 'id',
-          model: TABLES.Users,
+          model: TABLES.users,
         },
         type: DataTypes.INTEGER,
       },

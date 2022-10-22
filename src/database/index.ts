@@ -26,6 +26,7 @@ class Database {
     this.Instance = new Sequelize({
       database: DATABASE.name,
       dialect: 'postgres',
+      host: DATABASE.host,
       logging: log,
       password: DATABASE.password,
       port: DATABASE.port,

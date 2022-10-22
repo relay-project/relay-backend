@@ -11,7 +11,7 @@ import {
   TABLES,
 } from '../../configuration';
 
-export const tableName = TABLES.Users;
+export const tableName = TABLES.users;
 
 export const createModel = (connection: Sequelize): ModelStatic<Model> => {
   const model = connection.define(
@@ -21,9 +21,11 @@ export const createModel = (connection: Sequelize): ModelStatic<Model> => {
         type: DataTypes.STRING(MAX_LOGIN_LENGTH),
       },
       recoveryAnswer: {
+        field: 'recovery_answer',
         type: DataTypes.TEXT,
       },
       recoveryQuestion: {
+        field: 'recovery_question',
         type: DataTypes.TEXT,
       },
       role: {

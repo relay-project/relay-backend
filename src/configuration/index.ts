@@ -6,6 +6,7 @@ export const ALLOWED_ORIGINS: string[] = ev.ALLOWED_ORIGINS
 
 export const DATABASE = {
   dialect: 'postgres',
+  host: process.env.DATABASE_HOST,
   logging: false,
   name: process.env.DATABASE_NAME,
   password: process.env.DATABASE_PASSWORD,
@@ -52,7 +53,7 @@ export const ROLES = {
 };
 
 export const TABLES = {
-  Passwords: 'Passwords',
-  Secrets: 'Secrets',
-  Users: 'Users',
+  passwords: 'passwords',
+  secrets: 'secrets',
+  users: 'users',
 };
