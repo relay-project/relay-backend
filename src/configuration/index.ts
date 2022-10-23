@@ -41,8 +41,8 @@ export const MAX_RECOVERY_QUESTION_LENGTH = 256;
 export const PORT = Number(ev.PORT) || 5000;
 
 export const RESPONSE_MESSAGES = {
-  emailAlreadyInUse: 'EMAIL_ALREADY_IN_USE',
   internalServerError: 'INTERNAL_SERVER_ERROR',
+  loginAlreadyInUse: 'LOGIN_ALREADY_IN_USE',
   ok: 'OK',
   unauthorized: 'UNAUTHORIZED',
   validationError: 'VALIDATION_ERROR',

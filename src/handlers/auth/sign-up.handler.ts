@@ -5,13 +5,12 @@ import type { ValidationResult } from 'joi';
 import { createToken } from '../../utilities/jwt';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
+import response from '../../utilities/response';
 import {
-  EVENTS,
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
   TABLES,
 } from '../../configuration';
-import response from '../../utilities/response';
 import { signUpSchema } from './validation';
 
 interface SignUpPayload {
@@ -26,6 +25,7 @@ interface SignUpPayload {
 export default async function signUpHandler(
   connection: Socket,
   payload: SignUpPayload,
+  event: string,
 ): Promise<boolean> {
   try {
     const {
@@ -46,14 +46,14 @@ export default async function signUpHandler(
       recoveryAnswer,
       recoveryQuestion,
     } = value;
-    const existingUser = database.Instance[TABLES.users].findOne({
+    const existingUser = await database.Instance[TABLES.users].findOne({
       where: {
         login: value.login,
       },
     });
     if (existingUser) {
       throw new CustomError({
-        info: RESPONSE_MESSAGES.emailAlreadyInUse,
+        info: RESPONSE_MESSAGES.loginAlreadyInUse,
         status: RESPONSE_STATUSES.badRequest,
       });
     }
@@ -114,7 +114,7 @@ export default async function signUpHandler(
 
       return response({
         connection,
-        event: EVENTS.SIGN_IN,
+        event,
         payload: {
           token,
           user: userRecord,
@@ -129,7 +129,7 @@ export default async function signUpHandler(
       return response({
         connection,
         details: error.details || '',
-        event: EVENTS.SIGN_IN,
+        event,
         info: error.info,
         status: error.status,
       });
@@ -137,7 +137,7 @@ export default async function signUpHandler(
     return response({
       connection,
       error,
-      event: EVENTS.SIGN_IN,
+      event,
     });
   }
 }

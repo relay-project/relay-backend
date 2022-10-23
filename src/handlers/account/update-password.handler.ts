@@ -11,11 +11,11 @@ import {
   RESPONSE_STATUSES,
   TABLES,
 } from '../../configuration';
-import { signInSchema } from './validation';
+import updatePasswordSchema from './validation';
 
-interface SignInPayload {
-  login: string;
-  password: string;
+interface UpdatePasswordPayload {
+  newPassword: string;
+  oldPassword: string;
 }
 
 const unauthorizedError = new CustomError({
@@ -23,16 +23,16 @@ const unauthorizedError = new CustomError({
   status: RESPONSE_STATUSES.unauthorized,
 });
 
-export default async function signInHandler(
+export default async function updatePasswordHandler(
   connection: Socket,
-  payload: SignInPayload,
+  payload: UpdatePasswordPayload,
   event: string,
 ): Promise<boolean> {
   try {
     const {
       error: validationError,
       value,
-    }: ValidationResult<SignInPayload> = signInSchema.validate(payload);
+    }: ValidationResult<UpdatePasswordPayload> = updatePasswordSchema.validate(payload);
     if (validationError) {
       throw new CustomError({
         details: validationError,
@@ -40,27 +40,27 @@ export default async function signInHandler(
     }
 
     const {
-      login,
-      password,
+      newPassword,
+      oldPassword,
     } = value;
-    const userRecord = await database.Instance[TABLES.users].findOne({
-      where: {
-        login,
-      },
-    });
-    if (!userRecord) {
-      throw unauthorizedError;
-    }
+    // const userRecord = await database.Instance[TABLES.users].findOne({
+    //   where: {
+    //     login,
+    //   },
+    // });
+    // if (!userRecord) {
+    //   throw unauthorizedError;
+    // }
 
     const [passwordRecord, secretRecord] = await Promise.all([
       database.Instance[TABLES.passwords].findOne({
         where: {
-          userId: userRecord.id,
+          userId: 1,
         },
       }),
       database.Instance[TABLES.secrets].findOne({
         where: {
-          userId: userRecord.id,
+          userId: 1,
         },
       }),
     ]);
@@ -68,18 +68,17 @@ export default async function signInHandler(
       throw unauthorizedError;
     }
 
-    const isCorrect = await compare(passwordRecord.hash, password);
+    const isCorrect = await compare(passwordRecord.hash, oldPassword);
     if (!isCorrect) {
       throw unauthorizedError;
     }
 
-    const token = await createToken(userRecord.id, secretRecord.secret);
+    const token = await createToken(1, secretRecord.secret);
     return response({
       connection,
       event,
       payload: {
         token,
-        user: userRecord,
       },
     });
   } catch (error) {

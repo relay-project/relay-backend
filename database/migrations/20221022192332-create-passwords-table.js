@@ -12,7 +12,6 @@ module.exports = {
         createdAt: {
           allowNull: false,
           defaultValue: Sequelize.fn('now'),
-          field: 'created_at',
           type: Sequelize.DATE,
         },
         hash: {
@@ -38,7 +37,6 @@ module.exports = {
         updatedAt: {
           allowNull: false,
           defaultValue: Sequelize.fn('now'),
-          field: 'updated_at',
           type: Sequelize.DATE,
         },
       },
