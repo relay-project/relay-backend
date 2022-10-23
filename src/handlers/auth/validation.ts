@@ -22,6 +22,10 @@ export const signUpSchema = signInSchema.keys({
     .string()
     .alphanum()
     .required(),
+  deviceName: joi
+    .string()
+    .alphanum()
+    .required(),
   recoveryAnswer: joi
     .string()
     .max(MAX_RECOVERY_ANSWER_LENGTH)

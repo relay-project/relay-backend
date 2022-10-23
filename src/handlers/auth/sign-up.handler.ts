@@ -16,6 +16,7 @@ import { signUpSchema } from './validation';
 
 interface SignUpPayload {
   deviceId: string;
+  deviceName: string;
   login: string;
   password: string;
   recoveryAnswer: string;
@@ -39,6 +40,7 @@ export default async function signUpHandler(
 
     const {
       deviceId,
+      deviceName,
       login,
       password,
       recoveryAnswer,
@@ -73,7 +75,17 @@ export default async function signUpHandler(
       ]);
 
       const [secretHash] = await Promise.all([
-        hash(password),
+        hash(`${login}-${userRecord.id}-${Date.now()}`),
+        database.Instance[TABLES.devices].create(
+          {
+            deviceId,
+            deviceName,
+            userId: userRecord.id,
+          },
+          {
+            transaction,
+          },
+        ),
         database.Instance[TABLES.passwords].create(
           {
             hash: passwordHash,
@@ -85,20 +97,33 @@ export default async function signUpHandler(
         ),
       ]);
 
-      await transaction.commit();
+      await database.Instance[TABLES.secrets].create(
+        {
+          secret: secretHash,
+          userId: userRecord.id,
+        },
+        {
+          transaction,
+        },
+      );
+
+      const [token] = await Promise.all([
+        createToken(userRecord.id, secretHash),
+        transaction.commit(),
+      ]);
+
+      return response({
+        connection,
+        event: EVENTS.SIGN_IN,
+        payload: {
+          token,
+          user: userRecord,
+        },
+      });
     } catch (error) {
       await transaction.rollback();
       throw error;
     }
-
-    const token = await createToken(value.login, 'str');
-    return response({
-      connection,
-      event: EVENTS.SIGN_IN,
-      payload: {
-        token,
-      },
-    });
   } catch (error) {
     if (error instanceof CustomError) {
       return response({

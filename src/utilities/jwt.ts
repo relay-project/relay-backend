@@ -1,7 +1,7 @@
 import * as jwt from 'jsonwebtoken';
 
 export async function createToken(
-  userId: string,
+  userId: number,
   secret: string,
 ): Promise<null | string> {
   if (!(secret && userId)) {
