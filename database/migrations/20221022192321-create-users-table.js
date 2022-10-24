@@ -14,6 +14,10 @@ module.exports = {
           defaultValue: Sequelize.fn('now'),
           type: Sequelize.DATE,
         },
+        failedLoginAttempts: {
+          defaultValue: 0,
+          type: Sequelize.INTEGER,
+        },
         id: {
           allowNull: false,
           autoIncrement: true,
@@ -25,11 +29,9 @@ module.exports = {
           type: Sequelize.STRING(32),
         },
         recoveryAnswer: {
-          field: 'recovery_answer',
           type: Sequelize.TEXT,
         },
         recoveryQuestion: {
-          field: 'recovery_question',
           type: Sequelize.TEXT,
         },
         role: {

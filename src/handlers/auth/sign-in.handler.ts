@@ -79,7 +79,11 @@ export default async function signInHandler(
       event,
       payload: {
         token,
-        user: userRecord,
+        user: {
+          id: userRecord.id,
+          login: userRecord.login,
+          role: userRecord.role,
+        },
       },
     });
   } catch (error) {

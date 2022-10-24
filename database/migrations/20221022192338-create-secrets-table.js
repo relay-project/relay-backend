@@ -14,9 +14,6 @@ module.exports = {
           defaultValue: Sequelize.fn('now'),
           type: Sequelize.DATE,
         },
-        secret: {
-          type: Sequelize.STRING(255),
-        },
         id: {
           allowNull: false,
           autoIncrement: true,
@@ -24,8 +21,10 @@ module.exports = {
           type: Sequelize.INTEGER,
           unique: true,
         },
+        secret: {
+          type: Sequelize.STRING(255),
+        },
         userId: {
-          field: 'user_id',
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {

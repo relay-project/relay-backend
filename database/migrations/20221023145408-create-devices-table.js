@@ -15,11 +15,9 @@ module.exports = {
           type: Sequelize.DATE,
         },
         deviceId: {
-          field: 'device_id',
           type: Sequelize.STRING(128),
         },
         deviceName: {
-          field: 'device_name',
           type: Sequelize.STRING(128),
         },
         id: {
@@ -30,7 +28,6 @@ module.exports = {
           unique: true,
         },
         userId: {
-          field: 'user_id',
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {

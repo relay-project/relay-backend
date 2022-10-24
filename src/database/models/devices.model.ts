@@ -14,15 +14,12 @@ export const createModel = (connection: Sequelize): ModelStatic<Model> => {
     tableName,
     {
       deviceId: {
-        field: 'device_id',
         type: DataTypes.STRING(128),
       },
       deviceName: {
-        field: 'device_name',
         type: DataTypes.STRING(128),
       },
       userId: {
-        field: 'user_id',
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
         references: {

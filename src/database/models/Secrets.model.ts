@@ -17,7 +17,6 @@ export const createModel = (connection: Sequelize): ModelStatic<Model> => {
         type: DataTypes.STRING(255),
       },
       userId: {
-        field: 'user_id',
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
         references: {

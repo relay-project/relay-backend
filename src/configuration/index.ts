@@ -26,10 +26,12 @@ export const {
 } = ev;
 
 export const EVENTS = {
+  COMPLETE_LOGOUT: 'complete-logout',
   CONNECTION: 'connection',
   DISCONNECT: 'disconnect',
   SIGN_IN: 'sign-in',
   SIGN_UP: 'sign-up',
+  UPDATE_PASSWORD: 'update-password',
 };
 
 export const MAX_LOGIN_LENGTH = 32;

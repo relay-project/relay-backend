@@ -17,15 +17,17 @@ export const createModel = (connection: Sequelize): ModelStatic<Model> => {
   const model = connection.define(
     tableName,
     {
+      failedLoginAttempts: {
+        defaultValue: 0,
+        type: DataTypes.INTEGER,
+      },
       login: {
         type: DataTypes.STRING(MAX_LOGIN_LENGTH),
       },
       recoveryAnswer: {
-        field: 'recovery_answer',
         type: DataTypes.TEXT,
       },
       recoveryQuestion: {
-        field: 'recovery_question',
         type: DataTypes.TEXT,
       },
       role: {

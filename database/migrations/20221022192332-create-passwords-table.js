@@ -25,7 +25,6 @@ module.exports = {
           unique: true,
         },
         userId: {
-          field: 'user_id',
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
