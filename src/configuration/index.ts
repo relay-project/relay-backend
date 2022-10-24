@@ -34,6 +34,8 @@ export const EVENTS = {
   UPDATE_PASSWORD: 'update-password',
 };
 
+export const MAX_FAILED_LOGIN_ATTEMPTS = 10;
+
 export const MAX_LOGIN_LENGTH = 32;
 
 export const MAX_RECOVERY_ANSWER_LENGTH = 256;
@@ -43,6 +45,7 @@ export const MAX_RECOVERY_QUESTION_LENGTH = 256;
 export const PORT = Number(ev.PORT) || 5000;
 
 export const RESPONSE_MESSAGES = {
+  accountSuspended: 'ACCOUNT_SUSPENDED',
   internalServerError: 'INTERNAL_SERVER_ERROR',
   loginAlreadyInUse: 'LOGIN_ALREADY_IN_USE',
   ok: 'OK',
@@ -52,6 +55,7 @@ export const RESPONSE_MESSAGES = {
 
 export const RESPONSE_STATUSES = {
   badRequest: 400,
+  forbidden: 403,
   internalServerError: 500,
   ok: 200,
   unauthorized: 401,

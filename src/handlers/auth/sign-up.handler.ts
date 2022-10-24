@@ -2,7 +2,7 @@ import { hash } from 'scryptwrap';
 import type { Socket } from 'socket.io';
 import type { ValidationResult } from 'joi';
 
-import { createToken } from '../../utilities/jwt';
+import { composeSecret, createToken } from '../../utilities/jwt';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
 import response from '../../utilities/response';
@@ -108,7 +108,10 @@ export default async function signUpHandler(
       );
 
       const [token] = await Promise.all([
-        createToken(userRecord.id, secretHash),
+        createToken(
+          userRecord.id,
+          composeSecret(passwordHash, secretHash),
+        ),
         transaction.commit(),
       ]);
 

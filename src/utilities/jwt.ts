@@ -1,5 +1,12 @@
 import * as jwt from 'jsonwebtoken';
 
+export function composeSecret(
+  passwordHash: string,
+  secretHash: string,
+): string {
+  return `${passwordHash}-${secretHash}`;
+}
+
 export async function createToken(
   userId: number,
   secret: string,
