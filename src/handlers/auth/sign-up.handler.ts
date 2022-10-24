@@ -3,6 +3,7 @@ import type { Socket } from 'socket.io';
 import type { ValidationResult } from 'joi';
 
 import { composeSecret, createToken } from '../../utilities/jwt';
+import createRoomID, { ROOM_PREFIXES } from '../../utilities/rooms';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
 import response from '../../utilities/response';
@@ -114,6 +115,7 @@ export default async function signUpHandler(
         ),
         transaction.commit(),
       ]);
+      connection.join(createRoomID(ROOM_PREFIXES.user, userRecord.id));
 
       return response({
         connection,
@@ -123,9 +125,9 @@ export default async function signUpHandler(
           user: userRecord,
         },
       });
-    } catch (error) {
+    } catch (transactionError) {
       await transaction.rollback();
-      throw error;
+      throw transactionError;
     }
   } catch (error) {
     if (error instanceof CustomError) {

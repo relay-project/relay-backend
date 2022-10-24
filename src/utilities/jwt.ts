@@ -1,4 +1,6 @@
 import * as jwt from 'jsonwebtoken';
+import { TABLES } from '../configuration';
+import database from '../database';
 
 export function composeSecret(
   passwordHash: string,
@@ -37,5 +39,14 @@ export async function verifyToken(
   if (!(secret && token)) {
     throw new Error('Token and secret are required for token verification!');
   }
+  // const decoded = jwt.decode(token);
+  // const { sub: userId = null } = decoded;
+  // if (!userId) {
+  //   throw new jwt.JsonWebTokenError('Invalid token');
+  // }
+
+  // const [passwordRecord, secretRecord] = await Promise.all([
+  //   database.Instance[TABLES]
+  // ])
   return '';
 }

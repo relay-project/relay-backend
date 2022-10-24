@@ -3,6 +3,7 @@ import type { Socket } from 'socket.io';
 import type { ValidationResult } from 'joi';
 
 import { composeSecret, createToken } from '../../utilities/jwt';
+import createRoomID, { ROOM_PREFIXES } from '../../utilities/rooms';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
 import {
@@ -108,6 +109,7 @@ export default async function signInHandler(
     }
     const [token] = await Promise.all(promises);
 
+    connection.join(createRoomID(ROOM_PREFIXES.user, userRecord.id));
     return response({
       connection,
       event,
