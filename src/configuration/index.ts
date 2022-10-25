@@ -45,6 +45,7 @@ export const MAX_RECOVERY_QUESTION_LENGTH = 256;
 export const PORT = Number(ev.PORT) || 5000;
 
 export const RESPONSE_MESSAGES = {
+  accessDenied: 'ACCESS_DENIED',
   accountSuspended: 'ACCOUNT_SUSPENDED',
   internalServerError: 'INTERNAL_SERVER_ERROR',
   loginAlreadyInUse: 'LOGIN_ALREADY_IN_USE',

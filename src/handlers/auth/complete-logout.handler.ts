@@ -10,11 +10,6 @@ import {
   TABLES,
 } from '../../configuration';
 
-const unauthorizedError = new CustomError({
-  info: RESPONSE_MESSAGES.unauthorized,
-  status: RESPONSE_STATUSES.unauthorized,
-});
-
 export default async function completeLogoutHandler({
   connection,
   event,
@@ -27,7 +22,10 @@ export default async function completeLogoutHandler({
       },
     });
     if (!secretRecord) {
-      throw unauthorizedError;
+      throw new CustomError({
+        info: RESPONSE_MESSAGES.unauthorized,
+        status: RESPONSE_STATUSES.unauthorized,
+      });
     }
 
     const newSecretHash = await hash(`${secretRecord.userId}-${Date.now()}`);

@@ -1,7 +1,7 @@
 import {
   DataTypes,
-  Model,
-  ModelStatic,
+  type Model,
+  type ModelStatic,
   type Sequelize,
 } from 'sequelize';
 

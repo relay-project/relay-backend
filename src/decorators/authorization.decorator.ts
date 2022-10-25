@@ -1,4 +1,9 @@
-import { composeSecret, decodeToken, verifyToken } from '../utilities/jwt';
+import {
+  composeSecret,
+  decodeToken,
+  verifyToken,
+} from '../utilities/jwt';
+import createRoomID, { ROOM_PREFIXES } from '../utilities/rooms';
 import CustomError from '../utilities/custom-error';
 import database from '../database';
 import { HandlerOptions } from '../types';
@@ -6,11 +11,13 @@ import response from '../utilities/response';
 import {
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
+  ROLES,
   TABLES,
 } from '../configuration';
 
 type AuthorizationDecoratorOptions = Omit<HandlerOptions, 'userId'> & {
   callback: (options: HandlerOptions) => Promise<boolean>;
+  checkAdmin?: boolean;
 }
 
 const unauthorizedError = new CustomError({
@@ -20,6 +27,7 @@ const unauthorizedError = new CustomError({
 
 export default async function authorizationDecorator({
   callback,
+  checkAdmin = false,
   connection,
   event,
   payload,
@@ -37,12 +45,12 @@ export default async function authorizationDecorator({
     const [passwordRecord, secretRecord] = await Promise.all([
       database.Instance[TABLES.passwords].findOne({
         where: {
-          userId: 1,
+          userId,
         },
       }),
       database.Instance[TABLES.secrets].findOne({
         where: {
-          userId: 1,
+          userId,
         },
       }),
     ]);
@@ -50,10 +58,30 @@ export default async function authorizationDecorator({
       throw unauthorizedError;
     }
 
+    if (checkAdmin) {
+      const userRecord = await database.Instance[TABLES.users].findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!(userRecord && userRecord.role === ROLES.admin)) {
+        throw new CustomError({
+          info: RESPONSE_MESSAGES.accessDenied,
+          status: RESPONSE_STATUSES.forbidden,
+        });
+      }
+    }
+
     await verifyToken(
       token,
       composeSecret(passwordRecord.hash, secretRecord.secret),
     );
+
+    const userRoom = createRoomID(ROOM_PREFIXES.user, userId);
+    const rooms = [...connection.rooms];
+    if (!rooms.includes(userRoom)) {
+      connection.join(userRoom);
+    }
 
     return callback({
       connection,
@@ -65,7 +93,7 @@ export default async function authorizationDecorator({
     if (error instanceof CustomError) {
       return response({
         connection,
-        details: error.details || '',
+        details: error.details || null,
         event,
         info: error.info,
         status: error.status,

@@ -1,6 +1,6 @@
 import {
-  Model,
-  ModelStatic,
+  type Model,
+  type ModelStatic,
   Sequelize,
 } from 'sequelize';
 import { readdir } from 'fs/promises';
