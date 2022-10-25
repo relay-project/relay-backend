@@ -1,11 +1,11 @@
 import { compare } from 'scryptwrap';
-import type { Socket } from 'socket.io';
 import type { ValidationResult } from 'joi';
 
 import { composeSecret, createToken } from '../../utilities/jwt';
 import createRoomID, { ROOM_PREFIXES } from '../../utilities/rooms';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
+import type { HandlerOptions } from '../../types';
 import {
   MAX_FAILED_LOGIN_ATTEMPTS,
   RESPONSE_MESSAGES,
@@ -25,11 +25,11 @@ const unauthorizedError = new CustomError({
   status: RESPONSE_STATUSES.unauthorized,
 });
 
-export default async function signInHandler(
-  connection: Socket,
-  payload: SignInPayload,
-  event: string,
-): Promise<boolean> {
+export default async function signInHandler({
+  connection,
+  event,
+  payload,
+}: HandlerOptions): Promise<boolean> {
   try {
     const {
       error: validationError,
@@ -126,7 +126,7 @@ export default async function signInHandler(
     if (error instanceof CustomError) {
       return response({
         connection,
-        details: error.details || '',
+        details: error.details || null,
         event,
         info: error.info,
         status: error.status,

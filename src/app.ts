@@ -8,8 +8,7 @@ import {
 import database from './database';
 import gracefulShutdown from './utilities/graceful-shutdown';
 import log from './utilities/logger';
-import signInHandler from './handlers/auth/sign-in.handler';
-import signUpHandler from './handlers/auth/sign-up.handler';
+import router from './router';
 
 export default async function createServer(): Promise<void> {
   await database.connect();
@@ -28,25 +27,10 @@ export default async function createServer(): Promise<void> {
     (socket: Socket): void => {
       log(`connected ${socket.id}`);
 
+      router(socket);
       socket.on(
         EVENTS.DISCONNECT,
         (reason: string): void => log(`disconnected ${socket.id} (${reason})`),
-      );
-      socket.on(
-        EVENTS.SIGN_IN,
-        (payload): Promise<boolean> => signInHandler(
-          socket,
-          payload,
-          EVENTS.SIGN_IN,
-        ),
-      );
-      socket.on(
-        EVENTS.SIGN_UP,
-        (payload): Promise<boolean> => signUpHandler(
-          socket,
-          payload,
-          EVENTS.SIGN_UP,
-        ),
       );
     },
   );

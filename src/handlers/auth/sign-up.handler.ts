@@ -1,11 +1,11 @@
 import { hash } from 'scryptwrap';
-import type { Socket } from 'socket.io';
 import type { ValidationResult } from 'joi';
 
 import { composeSecret, createToken } from '../../utilities/jwt';
 import createRoomID, { ROOM_PREFIXES } from '../../utilities/rooms';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
+import type { HandlerOptions } from '../../types';
 import response from '../../utilities/response';
 import {
   RESPONSE_MESSAGES,
@@ -23,11 +23,11 @@ interface SignUpPayload {
   recoveryQuestion: string;
 }
 
-export default async function signUpHandler(
-  connection: Socket,
-  payload: SignUpPayload,
-  event: string,
-): Promise<boolean> {
+export default async function signUpHandler({
+  connection,
+  event,
+  payload,
+}: HandlerOptions): Promise<boolean> {
   try {
     const {
       error: validationError,
@@ -122,7 +122,11 @@ export default async function signUpHandler(
         event,
         payload: {
           token,
-          user: userRecord,
+          user: {
+            id: userRecord.id,
+            login: userRecord.login,
+            role: userRecord.role,
+          },
         },
       });
     } catch (transactionError) {
@@ -133,7 +137,7 @@ export default async function signUpHandler(
     if (error instanceof CustomError) {
       return response({
         connection,
-        details: error.details || '',
+        details: error.details || null,
         event,
         info: error.info,
         status: error.status,

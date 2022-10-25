@@ -1,8 +1,8 @@
 import { hash } from 'scryptwrap';
-import type { Socket } from 'socket.io';
 
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
+import type { HandlerOptions } from '../../types';
 import response from '../../utilities/response';
 import {
   RESPONSE_MESSAGES,
@@ -15,32 +15,29 @@ const unauthorizedError = new CustomError({
   status: RESPONSE_STATUSES.unauthorized,
 });
 
-export default async function completeLogoutHandler(
-  connection: Socket,
-  payload: null,
-  event: string,
-): Promise<boolean> {
+export default async function completeLogoutHandler({
+  connection,
+  event,
+  userId,
+}: HandlerOptions): Promise<boolean> {
   try {
     const secretRecord = await database.Instance[TABLES.secrets].findOne({
       where: {
-        userId: 1,
+        userId,
       },
     });
     if (!secretRecord) {
       throw unauthorizedError;
     }
 
-    // TODO: use proper values
-    const newSecretHash = await hash(`${1}-login-${Date.now()}`);
-
-    // TODO: use proper values
+    const newSecretHash = await hash(`${secretRecord.userId}-${Date.now()}`);
     await database.Instance[TABLES.secrets].update(
       {
         secret: newSecretHash,
       },
       {
         where: {
-          userId: 1,
+          userId,
         },
       },
     );
@@ -53,7 +50,7 @@ export default async function completeLogoutHandler(
     if (error instanceof CustomError) {
       return response({
         connection,
-        details: error.details || '',
+        details: error.details || null,
         event,
         info: error.info,
         status: error.status,

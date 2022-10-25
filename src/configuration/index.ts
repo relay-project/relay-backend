@@ -48,6 +48,7 @@ export const RESPONSE_MESSAGES = {
   accountSuspended: 'ACCOUNT_SUSPENDED',
   internalServerError: 'INTERNAL_SERVER_ERROR',
   loginAlreadyInUse: 'LOGIN_ALREADY_IN_USE',
+  missingToken: 'MISSING_TOKEN',
   ok: 'OK',
   unauthorized: 'UNAUTHORIZED',
   validationError: 'VALIDATION_ERROR',
