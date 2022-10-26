@@ -42,6 +42,8 @@ export const MAX_RECOVERY_ANSWER_LENGTH = 256;
 
 export const MAX_RECOVERY_QUESTION_LENGTH = 256;
 
+export const MIN_PASSWORD_LENGTH = 8;
+
 export const PORT = Number(ev.PORT) || 5000;
 
 export const RESPONSE_MESSAGES = {

@@ -28,7 +28,7 @@ export default function router(connection: Socket): void {
     EVENTS.SIGN_UP,
     (payload): Promise<boolean> => signUpHandler({
       connection,
-      event: EVENTS.SIGN_IN,
+      event: EVENTS.SIGN_UP,
       payload,
     }),
   );
