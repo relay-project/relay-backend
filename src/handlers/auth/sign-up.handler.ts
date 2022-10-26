@@ -61,12 +61,13 @@ export default async function signUpHandler({
 
     const transaction = await database.Instance.transaction();
     try {
+      const recoveryAnswerHash = await hash(recoveryAnswer);
       const [passwordHash, userRecord] = await Promise.all([
         hash(password),
         database.Instance[TABLES.users].create(
           {
             login,
-            recoveryAnswer,
+            recoveryAnswer: recoveryAnswerHash,
             recoveryQuestion,
           },
           {

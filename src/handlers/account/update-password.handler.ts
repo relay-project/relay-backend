@@ -11,17 +11,12 @@ import {
   RESPONSE_STATUSES,
   TABLES,
 } from '../../configuration';
-import updatePasswordSchema from './validation';
+import { updatePasswordSchema } from './validation';
 
 interface UpdatePasswordPayload {
   newPassword: string;
   oldPassword: string;
 }
-
-const unauthorizedError = new CustomError({
-  info: RESPONSE_MESSAGES.unauthorized,
-  status: RESPONSE_STATUSES.unauthorized,
-});
 
 export default async function updatePasswordHandler({
   connection,
@@ -47,14 +42,25 @@ export default async function updatePasswordHandler({
 
     const transaction = await database.Instance.transaction();
     try {
-      const passwordRecord = await database.Instance[TABLES.passwords].findOne({
-        transaction,
-        where: {
-          userId,
-        },
-      });
-      if (!passwordRecord) {
-        throw unauthorizedError;
+      const [passwordRecord, secretRecord] = await Promise.all([
+        database.Instance[TABLES.passwords].findOne({
+          transaction,
+          where: {
+            userId,
+          },
+        }),
+        database.Instance[TABLES.secrets].findOne({
+          transaction,
+          where: {
+            userId,
+          },
+        }),
+      ]);
+      if (!(passwordRecord && secretRecord)) {
+        throw new CustomError({
+          info: RESPONSE_MESSAGES.unauthorized,
+          status: RESPONSE_STATUSES.unauthorized,
+        });
       }
 
       const isCorrect = await compare(passwordRecord.hash, oldPassword);
@@ -66,13 +72,11 @@ export default async function updatePasswordHandler({
       }
 
       const newPasswordHash = await hash(newPassword);
-      const [secretRecord] = await Promise.all([
-        database.Instance[TABLES.secrets].findOne({
-          transaction,
-          where: {
-            userId,
-          },
-        }),
+      const [token] = await Promise.all([
+        createToken(
+          userId,
+          composeSecret(newPasswordHash, secretRecord.secret),
+        ),
         database.Instance[TABLES.passwords].update(
           {
             hash: newPasswordHash,
@@ -86,13 +90,7 @@ export default async function updatePasswordHandler({
         ),
       ]);
 
-      await Promise.all([
-        createToken(
-          userId,
-          composeSecret(newPasswordHash, secretRecord.secret),
-        ),
-        transaction.commit(),
-      ]);
+      await transaction.commit();
 
       return response({
         connection,

@@ -20,11 +20,6 @@ type AuthorizationDecoratorOptions = Omit<HandlerOptions, 'userId'> & {
   checkAdmin?: boolean;
 }
 
-const unauthorizedError = new CustomError({
-  info: RESPONSE_MESSAGES.unauthorized,
-  status: RESPONSE_STATUSES.unauthorized,
-});
-
 export default async function authorizationDecorator({
   callback,
   checkAdmin = false,
@@ -55,7 +50,10 @@ export default async function authorizationDecorator({
       }),
     ]);
     if (!(passwordRecord && secretRecord)) {
-      throw unauthorizedError;
+      throw new CustomError({
+        info: RESPONSE_MESSAGES.unauthorized,
+        status: RESPONSE_STATUSES.unauthorized,
+      });
     }
 
     if (checkAdmin) {

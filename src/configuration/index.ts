@@ -32,11 +32,14 @@ export const EVENTS = {
   SIGN_IN: 'sign-in',
   SIGN_UP: 'sign-up',
   UPDATE_PASSWORD: 'update-password',
+  UPDATE_RECOVERY_DATA: 'update-recovery-data',
 };
 
 export const MAX_FAILED_LOGIN_ATTEMPTS = 10;
 
 export const MAX_LOGIN_LENGTH = 32;
+
+export const MAX_PASSWORD_LENGTH = 64;
 
 export const MAX_RECOVERY_ANSWER_LENGTH = 256;
 

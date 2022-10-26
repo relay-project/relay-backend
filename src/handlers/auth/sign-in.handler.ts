@@ -108,8 +108,8 @@ export default async function signInHandler({
       ));
     }
     const [token] = await Promise.all(promises);
-
     connection.join(createRoomID(ROOM_PREFIXES.user, userRecord.id));
+
     return response({
       connection,
       event,
