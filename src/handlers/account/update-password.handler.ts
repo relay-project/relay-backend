@@ -1,10 +1,10 @@
-import { compare } from 'scryptwrap';
-import type { Socket } from 'socket.io';
+import { compare, hash } from 'scryptwrap';
 import type { ValidationResult } from 'joi';
 
-import { createToken } from '../../utilities/jwt';
+import { composeSecret, createToken } from '../../utilities/jwt';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
+import type { HandlerOptions } from '../../types';
 import response from '../../utilities/response';
 import {
   RESPONSE_MESSAGES,
@@ -23,11 +23,12 @@ const unauthorizedError = new CustomError({
   status: RESPONSE_STATUSES.unauthorized,
 });
 
-export default async function updatePasswordHandler(
-  connection: Socket,
-  payload: UpdatePasswordPayload,
-  event: string,
-): Promise<boolean> {
+export default async function updatePasswordHandler({
+  connection,
+  event,
+  payload,
+  userId,
+}: HandlerOptions): Promise<boolean> {
   try {
     const {
       error: validationError,
@@ -43,44 +44,67 @@ export default async function updatePasswordHandler(
       newPassword,
       oldPassword,
     } = value;
-    // const userRecord = await database.Instance[TABLES.users].findOne({
-    //   where: {
-    //     login,
-    //   },
-    // });
-    // if (!userRecord) {
-    //   throw unauthorizedError;
-    // }
 
-    const [passwordRecord, secretRecord] = await Promise.all([
-      database.Instance[TABLES.passwords].findOne({
+    const transaction = await database.Instance.transaction();
+    try {
+      const passwordRecord = await database.Instance[TABLES.passwords].findOne({
+        transaction,
         where: {
-          userId: 1,
+          userId,
         },
-      }),
-      database.Instance[TABLES.secrets].findOne({
-        where: {
-          userId: 1,
+      });
+      if (!passwordRecord) {
+        throw unauthorizedError;
+      }
+
+      const isCorrect = await compare(passwordRecord.hash, oldPassword);
+      if (!isCorrect) {
+        throw new CustomError({
+          info: RESPONSE_MESSAGES.oldPasswordIsInvalid,
+          status: RESPONSE_STATUSES.badRequest,
+        });
+      }
+
+      const newPasswordHash = await hash(newPassword);
+      const [secretRecord] = await Promise.all([
+        database.Instance[TABLES.secrets].findOne({
+          transaction,
+          where: {
+            userId,
+          },
+        }),
+        database.Instance[TABLES.passwords].update(
+          {
+            hash: newPasswordHash,
+          },
+          {
+            transaction,
+            where: {
+              userId,
+            },
+          },
+        ),
+      ]);
+
+      await Promise.all([
+        createToken(
+          userId,
+          composeSecret(newPasswordHash, secretRecord.secret),
+        ),
+        transaction.commit(),
+      ]);
+
+      return response({
+        connection,
+        event,
+        payload: {
+          token,
         },
-      }),
-    ]);
-    if (!(passwordRecord && secretRecord)) {
-      throw unauthorizedError;
+      });
+    } catch (transactionError) {
+      await transaction.rollback();
+      throw transactionError;
     }
-
-    const isCorrect = await compare(passwordRecord.hash, oldPassword);
-    if (!isCorrect) {
-      throw unauthorizedError;
-    }
-
-    const token = await createToken(1, secretRecord.secret);
-    return response({
-      connection,
-      event,
-      payload: {
-        token,
-      },
-    });
   } catch (error) {
     if (error instanceof CustomError) {
       return response({

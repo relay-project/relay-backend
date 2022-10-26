@@ -53,6 +53,7 @@ export const RESPONSE_MESSAGES = {
   loginAlreadyInUse: 'LOGIN_ALREADY_IN_USE',
   missingToken: 'MISSING_TOKEN',
   ok: 'OK',
+  oldPasswordIsInvalid: 'OLD_PASSWORD_IS_INVALID',
   unauthorized: 'UNAUTHORIZED',
   validationError: 'VALIDATION_ERROR',
 };
