@@ -10,7 +10,9 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../configuration';
 
-const base = joi.object({
+export { type ValidationResult } from 'joi';
+
+export const loginSchema = joi.object({
   login: joi
     .string()
     .alphanum()
@@ -19,13 +21,27 @@ const base = joi.object({
     .required(),
 });
 
-export const signInSchema = base.keys({
+export const recoveryFinalSchema = joi.object({
+  newPassword: joi
+    .string()
+    .max(MAX_PASSWORD_LENGTH)
+    .min(MIN_PASSWORD_LENGTH)
+    .required(),
+  recoveryAnswer: joi
+    .string()
+    .required(),
+  userId: joi
+    .number()
+    .required(),
+});
+
+export const signInSchema = loginSchema.keys({
   password: joi
     .string()
     .required(),
 });
 
-export const signUpSchema = base.keys({
+export const signUpSchema = loginSchema.keys({
   deviceId: joi
     .string()
     .alphanum()

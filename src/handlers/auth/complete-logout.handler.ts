@@ -1,5 +1,4 @@
-import { hash } from 'scryptwrap';
-
+import { createHash } from './service';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
 import type { HandlerOptions } from '../../types';
@@ -28,7 +27,7 @@ export default async function completeLogoutHandler({
       });
     }
 
-    const newSecretHash = await hash(`${secretRecord.userId}-${Date.now()}`);
+    const newSecretHash = await createHash(`${secretRecord.userId}-${Date.now()}`);
     await database.Instance[TABLES.secrets].update(
       {
         secret: newSecretHash,
