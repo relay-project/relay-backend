@@ -47,7 +47,7 @@ export default async function signInHandler({
     } = value;
     const userRecord = await database.Instance[TABLES.users].findOne({
       where: {
-        login,
+        login: login.toLowerCase(),
       },
     });
     if (!userRecord) {

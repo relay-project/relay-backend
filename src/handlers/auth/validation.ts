@@ -1,6 +1,8 @@
 import joi from 'joi';
 
 import {
+  MAX_DEVICE_ID_LENGTH,
+  MAX_DEVICE_NAME_LENGTH,
   MAX_LOGIN_LENGTH,
   MAX_PASSWORD_LENGTH,
   MAX_RECOVERY_ANSWER_LENGTH,
@@ -12,6 +14,7 @@ const base = joi.object({
   login: joi
     .string()
     .alphanum()
+    .lowercase()
     .max(MAX_LOGIN_LENGTH)
     .required(),
 });
@@ -26,10 +29,12 @@ export const signUpSchema = base.keys({
   deviceId: joi
     .string()
     .alphanum()
+    .max(MAX_DEVICE_ID_LENGTH)
     .required(),
   deviceName: joi
     .string()
     .alphanum()
+    .max(MAX_DEVICE_NAME_LENGTH)
     .required(),
   password: joi
     .string()

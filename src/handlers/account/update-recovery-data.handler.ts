@@ -5,9 +5,7 @@ import CustomError from '../../utilities/custom-error';
 import database from '../../database';
 import type { HandlerOptions } from '../../types';
 import response from '../../utilities/response';
-import {
-  TABLES,
-} from '../../configuration';
+import { TABLES } from '../../configuration';
 import { updateRecoveryDataSchema } from './validation';
 
 interface UpdateRecoveryDataPayload {

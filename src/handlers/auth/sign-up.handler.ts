@@ -49,7 +49,7 @@ export default async function signUpHandler({
     } = value;
     const existingUser = await database.Instance[TABLES.users].findOne({
       where: {
-        login: value.login,
+        login: login.toLowerCase(),
       },
     });
     if (existingUser) {
@@ -66,7 +66,7 @@ export default async function signUpHandler({
         hash(password),
         database.Instance[TABLES.users].create(
           {
-            login,
+            login: login.toLowerCase(),
             recoveryAnswer: recoveryAnswerHash,
             recoveryQuestion,
           },

@@ -35,11 +35,15 @@ export const EVENTS = {
   UPDATE_RECOVERY_DATA: 'update-recovery-data',
 };
 
+export const MAX_DEVICE_ID_LENGTH = 64;
+
+export const MAX_DEVICE_NAME_LENGTH = 64;
+
 export const MAX_FAILED_LOGIN_ATTEMPTS = 10;
 
 export const MAX_LOGIN_LENGTH = 32;
 
-export const MAX_PASSWORD_LENGTH = 64;
+export const MAX_PASSWORD_LENGTH = 32;
 
 export const MAX_RECOVERY_ANSWER_LENGTH = 256;
 
