@@ -1,6 +1,3 @@
-import { compare, hash } from 'scryptwrap';
-import type { ValidationResult } from 'joi';
-
 import { composeSecret, createToken } from '../../utilities/jwt';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
@@ -11,7 +8,8 @@ import {
   RESPONSE_STATUSES,
   TABLES,
 } from '../../configuration';
-import { updatePasswordSchema } from './validation';
+import * as service from './service';
+import { updatePasswordSchema, type ValidationResult } from './validation';
 
 interface UpdatePasswordPayload {
   newPassword: string;
@@ -63,7 +61,7 @@ export default async function updatePasswordHandler({
         });
       }
 
-      const isCorrect = await compare(passwordRecord.hash, oldPassword);
+      const isCorrect = await service.compareHashes(oldPassword, passwordRecord.hash);
       if (!isCorrect) {
         throw new CustomError({
           info: RESPONSE_MESSAGES.oldPasswordIsInvalid,
@@ -71,7 +69,7 @@ export default async function updatePasswordHandler({
         });
       }
 
-      const newPasswordHash = await hash(newPassword);
+      const newPasswordHash = await service.createHash(newPassword);
       const [token] = await Promise.all([
         createToken(
           userId,

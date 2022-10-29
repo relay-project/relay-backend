@@ -7,6 +7,8 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../configuration';
 
+export { type ValidationResult } from 'joi';
+
 export const updatePasswordSchema = joi.object({
   newPassword: joi
     .string()

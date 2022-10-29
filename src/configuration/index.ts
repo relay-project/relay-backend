@@ -28,6 +28,7 @@ export const {
 export const EVENTS = {
   COMPLETE_LOGOUT: 'complete-logout',
   CONNECTION: 'connection',
+  DELETE_ACCOUNT: 'delete-account',
   DISCONNECT: 'disconnect',
   RECOVERY_FINAL_STAGE: 'recovery-final-stage',
   RECOVERY_INITIAL_STAGE: 'recovery-inital-stage',

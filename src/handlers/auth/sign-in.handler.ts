@@ -1,6 +1,3 @@
-import { compare } from 'scryptwrap';
-import type { ValidationResult } from 'joi';
-
 import { composeSecret, createToken } from '../../utilities/jwt';
 import createRoomID, { ROOM_PREFIXES } from '../../utilities/rooms';
 import CustomError from '../../utilities/custom-error';
@@ -13,7 +10,8 @@ import {
   TABLES,
 } from '../../configuration';
 import response from '../../utilities/response';
-import { signInSchema } from './validation';
+import * as service from './service';
+import { signInSchema, type ValidationResult } from './validation';
 
 interface SignInPayload {
   login: string;
@@ -45,11 +43,12 @@ export default async function signInHandler({
       login,
       password,
     } = value;
-    const userRecord = await database.Instance[TABLES.users].findOne({
-      where: {
+    const userRecord = await service.getSingleRecord(
+      TABLES.users,
+      {
         login: login.toLowerCase(),
       },
-    });
+    );
     if (!userRecord) {
       throw unauthorizedError;
     }
@@ -61,22 +60,14 @@ export default async function signInHandler({
     }
 
     const [passwordRecord, secretRecord] = await Promise.all([
-      database.Instance[TABLES.passwords].findOne({
-        where: {
-          userId: userRecord.id,
-        },
-      }),
-      database.Instance[TABLES.secrets].findOne({
-        where: {
-          userId: userRecord.id,
-        },
-      }),
+      service.getSingleRecord(TABLES.passwords, { userId: userRecord.id }),
+      service.getSingleRecord(TABLES.secrets, { userId: userRecord.id }),
     ]);
     if (!(passwordRecord && secretRecord)) {
       throw unauthorizedError;
     }
 
-    const isCorrect = await compare(passwordRecord.hash, password);
+    const isCorrect = await service.compareHashes(password, passwordRecord.hash);
     if (!isCorrect) {
       await database.Instance[TABLES.users].update(
         {

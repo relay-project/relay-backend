@@ -1,6 +1,3 @@
-import { hash } from 'scryptwrap';
-import type { ValidationResult } from 'joi';
-
 import { composeSecret, createToken } from '../../utilities/jwt';
 import createRoomID, { ROOM_PREFIXES } from '../../utilities/rooms';
 import CustomError from '../../utilities/custom-error';
@@ -12,7 +9,8 @@ import {
   RESPONSE_STATUSES,
   TABLES,
 } from '../../configuration';
-import { signUpSchema } from './validation';
+import * as service from './service';
+import { signUpSchema, type ValidationResult } from './validation';
 
 interface SignUpPayload {
   deviceId: string;
@@ -61,9 +59,9 @@ export default async function signUpHandler({
 
     const transaction = await database.Instance.transaction();
     try {
-      const recoveryAnswerHash = await hash(recoveryAnswer);
+      const recoveryAnswerHash = await service.createHash(recoveryAnswer);
       const [passwordHash, userRecord] = await Promise.all([
-        hash(password),
+        service.createHash(password),
         database.Instance[TABLES.users].create(
           {
             login: login.toLowerCase(),
@@ -77,7 +75,7 @@ export default async function signUpHandler({
       ]);
 
       const [secretHash] = await Promise.all([
-        hash(`${login}-${userRecord.id}-${Date.now()}`),
+        service.createHash(`${login}-${userRecord.id}-${Date.now()}`),
         database.Instance[TABLES.devices].create(
           {
             deviceId,

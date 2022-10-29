@@ -1,12 +1,10 @@
-import { hash } from 'scryptwrap';
-import type { ValidationResult } from 'joi';
-
+import { createHash } from './service';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
 import type { HandlerOptions } from '../../types';
 import response from '../../utilities/response';
 import { TABLES } from '../../configuration';
-import { updateRecoveryDataSchema } from './validation';
+import { updateRecoveryDataSchema, type ValidationResult } from './validation';
 
 interface UpdateRecoveryDataPayload {
   newRecoveryAnswer: string;
@@ -37,11 +35,11 @@ export default async function updateRecoveryDataHandler({
       newRecoveryQuestion,
     } = value;
 
-    const newRecoveryAnswerHash = await hash(newRecoveryAnswer);
+    const newRecoveryAnswerHash = await createHash(newRecoveryAnswer);
     await database.Instance[TABLES.users].update(
       {
         recoveryAnswer: newRecoveryAnswerHash,
-        newRecoveryQuestion,
+        recoveryQuestion: newRecoveryQuestion,
       },
       {
         where: {
