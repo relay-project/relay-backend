@@ -21,5 +21,5 @@ export async function getSingleRecord(
   table: string,
   condition: Condition,
 ): Promise<any> {
-  return database.Instance[table].findOne(condition);
+  return database.Instance[table].findOne({ where: condition });
 }

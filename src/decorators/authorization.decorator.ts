@@ -28,7 +28,7 @@ export default async function authorizationDecorator({
   payload,
 }: AuthorizationDecoratorOptions): Promise<boolean> {
   try {
-    const { token = '' } = payload;
+    const { token = '', ...payloadWithoutToken } = payload;
     if (!token) {
       throw new CustomError({
         info: RESPONSE_MESSAGES.missingToken,
@@ -84,7 +84,7 @@ export default async function authorizationDecorator({
     return callback({
       connection,
       event,
-      payload,
+      payload: payloadWithoutToken,
       userId,
     });
   } catch (error) {
