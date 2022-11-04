@@ -43,7 +43,7 @@ export default async function updateRecoveryDataHandler({
       },
       {
         where: {
-          userId,
+          id: userId,
         },
       },
     );
