@@ -32,6 +32,15 @@ export default function router(connection: Socket): void {
     }),
   );
   connection.on(
+    EVENTS.FIND_USERS,
+    (payload: Payload): Promise<boolean> => authorizationDecorator({
+      callback: updatePasswordHandler,
+      connection,
+      event: EVENTS.FIND_USERS,
+      payload,
+    }),
+  );
+  connection.on(
     EVENTS.RECOVERY_FINAL_STAGE,
     (payload: Payload): Promise<boolean> => recoveryFinalHandler({
       connection,
