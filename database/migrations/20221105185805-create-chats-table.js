@@ -1,4 +1,4 @@
-const TABLE_NAME = 'users';
+const TABLE_NAME = 'chats';
 
 /** @type { import('sequelize-cli').Migration } */
 module.exports = {
@@ -14,8 +14,13 @@ module.exports = {
           defaultValue: Sequelize.fn('now'),
           type: Sequelize.DATE,
         },
-        failedLoginAttempts: {
-          defaultValue: 0,
+        createdBy: {
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+          references: {
+            key: 'id',
+            model: 'users',
+          },
           type: Sequelize.INTEGER,
         },
         id: {
@@ -25,18 +30,11 @@ module.exports = {
           type: Sequelize.INTEGER,
           unique: true,
         },
-        login: {
-          type: Sequelize.STRING(32),
-          unique: true,
+        name: {
+          type: Sequelize.STRING(256),
         },
-        recoveryAnswer: {
-          type: Sequelize.TEXT,
-        },
-        recoveryQuestion: {
-          type: Sequelize.TEXT,
-        },
-        role: {
-          defaultValue: 'user',
+        type: {
+          defaultValue: 'private',
           type: Sequelize.STRING(16),
         },
         updatedAt: {

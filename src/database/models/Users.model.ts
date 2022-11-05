@@ -23,6 +23,7 @@ export const createModel = (connection: Sequelize): ModelStatic<Model> => {
       },
       login: {
         type: DataTypes.STRING(MAX_LOGIN_LENGTH),
+        unique: true,
       },
       recoveryAnswer: {
         type: DataTypes.TEXT,

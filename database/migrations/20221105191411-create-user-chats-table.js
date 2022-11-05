@@ -1,4 +1,4 @@
-const TABLE_NAME = 'users';
+const TABLE_NAME = 'user_chats';
 
 /** @type { import('sequelize-cli').Migration } */
 module.exports = {
@@ -9,14 +9,19 @@ module.exports = {
     return queryInterface.createTable(
       TABLE_NAME,
       {
+        chatId: {
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+          references: {
+            key: 'id',
+            model: 'chats',
+          },
+          type: Sequelize.INTEGER,
+        },
         createdAt: {
           allowNull: false,
           defaultValue: Sequelize.fn('now'),
           type: Sequelize.DATE,
-        },
-        failedLoginAttempts: {
-          defaultValue: 0,
-          type: Sequelize.INTEGER,
         },
         id: {
           allowNull: false,
@@ -25,24 +30,19 @@ module.exports = {
           type: Sequelize.INTEGER,
           unique: true,
         },
-        login: {
-          type: Sequelize.STRING(32),
-          unique: true,
-        },
-        recoveryAnswer: {
-          type: Sequelize.TEXT,
-        },
-        recoveryQuestion: {
-          type: Sequelize.TEXT,
-        },
-        role: {
-          defaultValue: 'user',
-          type: Sequelize.STRING(16),
-        },
         updatedAt: {
           allowNull: false,
           defaultValue: Sequelize.fn('now'),
           type: Sequelize.DATE,
+        },
+        userId: {
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+          references: {
+            key: 'id',
+            model: 'users',
+          },
+          type: Sequelize.INTEGER,
         },
       },
     );

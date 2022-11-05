@@ -4,6 +4,11 @@ export const ALLOWED_ORIGINS: string[] = ev.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map((value: string): string => value.trim())
   : [];
 
+export const CHAT_TYPES = {
+  group: 'group',
+  private: 'private',
+};
+
 export const DATABASE = {
   dialect: 'postgres',
   host: process.env.DATABASE_HOST,
@@ -83,8 +88,12 @@ export const ROLES = {
 };
 
 export const TABLES = {
+  chatInvitations: 'chat_invitations',
+  chats: 'chats',
   devices: 'devices',
+  messages: 'messages',
   passwords: 'passwords',
   secrets: 'secrets',
   users: 'users',
+  userChats: 'user_chats',
 };
