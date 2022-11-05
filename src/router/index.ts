@@ -3,6 +3,7 @@ import type { Socket } from 'socket.io';
 import authorizationDecorator from '../decorators/authorization.decorator';
 import completeLogoutHandler from '../handlers/auth/complete-logout.handler';
 import deleteAccountHandler from '../handlers/account/delete-account.handler';
+import inviteUserHandler from '../handlers/chat/invite-user.handler';
 import { EVENTS } from '../configuration';
 import type { Payload } from '../types';
 import recoveryFinalHandler from '../handlers/auth/recovery-final.handler';
@@ -37,6 +38,15 @@ export default function router(connection: Socket): void {
       callback: updatePasswordHandler,
       connection,
       event: EVENTS.FIND_USERS,
+      payload,
+    }),
+  );
+  connection.on(
+    EVENTS.INVITE_USER,
+    (payload: Payload): Promise<boolean> => authorizationDecorator({
+      callback: inviteUserHandler,
+      connection,
+      event: EVENTS.INVITE_USER,
       payload,
     }),
   );

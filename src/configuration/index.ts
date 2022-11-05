@@ -36,6 +36,7 @@ export const EVENTS = {
   DELETE_ACCOUNT: 'delete-account',
   DISCONNECT: 'disconnect',
   FIND_USERS: 'find-users',
+  INVITE_USER: 'invite-user',
   RECOVERY_FINAL_STAGE: 'recovery-final-stage',
   RECOVERY_INITIAL_STAGE: 'recovery-inital-stage',
   SIGN_IN: 'sign-in',
