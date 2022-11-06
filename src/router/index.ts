@@ -8,10 +8,20 @@ import { EVENTS } from '../configuration';
 import type { Payload } from '../types';
 import recoveryFinalHandler from '../handlers/auth/recovery-final.handler';
 import recoveryInitialHandler from '../handlers/auth/recovery-initial.handler';
+import sendMessageHandler from '../handlers/chat/send-message.handler';
 import signInHandler from '../handlers/auth/sign-in.handler';
 import signUpHandler from '../handlers/auth/sign-up.handler';
 import updatePasswordHandler from '../handlers/account/update-password.handler';
 import updateRecoveryDataHandler from '../handlers/account/update-recovery-data.handler';
+
+// class Router {
+//   handlers: [];
+
+//   // TODO: automatically load all of the handlers and register them for every connection
+//   constructor() {
+//     this.handlers = [];
+//   }
+// }
 
 export default function router(connection: Socket): void {
   connection.on(
@@ -63,6 +73,15 @@ export default function router(connection: Socket): void {
     (payload: Payload): Promise<boolean> => recoveryInitialHandler({
       connection,
       event: EVENTS.RECOVERY_INITIAL_STAGE,
+      payload,
+    }),
+  );
+  connection.on(
+    EVENTS.SEND_MESSAGE,
+    (payload: Payload): Promise<boolean> => authorizationDecorator({
+      callback: sendMessageHandler,
+      connection,
+      event: EVENTS.SEND_MESSAGE,
       payload,
     }),
   );

@@ -1,16 +1,15 @@
 import CustomError from '../../utilities/custom-error';
+import { deleteMessageSchema, type ValidationResult } from './validation';
 import type { HandlerOptions } from '../../types';
 import response from '../../utilities/response';
 import { RESPONSE_MESSAGES, RESPONSE_STATUSES } from '../../configuration';
-import { sendMessageSchema, type ValidationResult } from './validation';
 import * as service from './service';
 
-interface SendMessagePayload {
-  chatId: number;
-  text: string;
+interface DeleteMessagePayload {
+  messageId: number;
 }
 
-export default async function sendMessageHandler({
+export default async function deleteMessageHandler({
   connection,
   event,
   payload,
@@ -20,7 +19,7 @@ export default async function sendMessageHandler({
     const {
       error: validationError,
       value,
-    }: ValidationResult<SendMessagePayload> = sendMessageSchema.validate(
+    }: ValidationResult<DeleteMessagePayload> = deleteMessageSchema.validate(
       payload,
     );
     if (validationError) {
@@ -29,17 +28,15 @@ export default async function sendMessageHandler({
       });
     }
 
-    const { chatId, text } = value;
+    const { messageId } = value;
 
-    const chatAccess = await service.checkChatAccess(chatId, userId);
-    if (!chatAccess) {
+    const success = await service.deleteMessage(messageId, userId);
+    if (!success) {
       throw new CustomError({
-        info: RESPONSE_MESSAGES.invalidChatId,
+        info: RESPONSE_MESSAGES.invalidMessageId,
         status: RESPONSE_STATUSES.badRequest,
       });
     }
-
-    await service.saveMessage(userId, chatId, text);
 
     // TODO: notify the room
 

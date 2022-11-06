@@ -2,6 +2,12 @@ import joi from 'joi';
 
 export { type ValidationResult } from 'joi';
 
+export const deleteMessageSchema = joi.object({
+  messageId: joi
+    .number()
+    .required(),
+});
+
 export const inviteUserSchema = joi.object({
   userId: joi
     .number()
@@ -10,6 +16,15 @@ export const inviteUserSchema = joi.object({
 
 export const sendMessageSchema = joi.object({
   chatId: joi
+    .number()
+    .required(),
+  text: joi
+    .string()
+    .required(),
+});
+
+export const updateMessageSchema = joi.object({
+  messageId: joi
     .number()
     .required(),
   text: joi

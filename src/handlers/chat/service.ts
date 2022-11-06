@@ -15,6 +15,32 @@ export async function checkChatAccess(
   return !!userAccess;
 }
 
+export async function deleteMessage(
+  messageId: number,
+  authorId: number,
+): Promise<boolean> {
+  const existingMessage = await database.singleRecordAction({
+    action: 'findOne',
+    condition: {
+      authorId,
+      id: messageId,
+    },
+    table: TABLES.messages,
+  });
+  if (!existingMessage) {
+    return false;
+  }
+  await database.singleRecordAction({
+    action: 'destroy',
+    condition: {
+      authorId,
+      id: messageId,
+    },
+    table: TABLES.messages,
+  });
+  return true;
+}
+
 export async function saveMessage(
   authorId: number,
   chatId: number,
