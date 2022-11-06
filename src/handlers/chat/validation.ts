@@ -8,6 +8,15 @@ export const inviteUserSchema = joi.object({
     .required(),
 });
 
+export const sendMessageSchema = joi.object({
+  chatId: joi
+    .number()
+    .required(),
+  text: joi
+    .string()
+    .required(),
+});
+
 export default joi.object({
   search: joi
     .string()

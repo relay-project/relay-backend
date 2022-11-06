@@ -2,6 +2,7 @@ import {
   type Model,
   type ModelStatic,
   Sequelize,
+  type Transaction,
 } from 'sequelize';
 import { readdir } from 'fs/promises';
 
@@ -14,6 +15,28 @@ import {
 } from '../configuration';
 import log from '../utilities/logger';
 import runMigrations from './run-migrations';
+
+export { TABLES } from '../configuration';
+
+const connectionError = new Error('Database is not connected!');
+
+interface Condition {
+  [key: string]: number | string;
+}
+
+interface QueryParameters {
+  transaction?: Transaction;
+  where: Condition;
+}
+
+type SingleRecordActions = 'destroy' | 'findOne';
+
+interface SingleRecordOptions {
+  action: SingleRecordActions,
+  condition: Condition;
+  table: string;
+  transaction?: Transaction;
+}
 
 class Database {
   Instance: null | Sequelize;
@@ -50,6 +73,13 @@ class Database {
     return this.Instance;
   }
 
+  async createTransaction(): Promise<Transaction> {
+    if (!this.Instance) {
+      throw connectionError;
+    }
+    return this.Instance.transaction();
+  }
+
   async disconnect(): Promise<void> {
     if (!this.Instance) {
       return null;
@@ -61,7 +91,7 @@ class Database {
 
   async registerModels(): Promise<null | void[]> {
     if (!this.Instance) {
-      throw new Error('Database is not connected!');
+      throw connectionError;
     }
 
     const files = await readdir(`${process.cwd()}/build/database/models`);
@@ -91,6 +121,24 @@ class Database {
       },
     );
     return Promise.all(imports);
+  }
+
+  async singleRecordAction({
+    action,
+    condition,
+    table,
+    transaction = null,
+  }: SingleRecordOptions): Promise<any> {
+    if (!this.Instance) {
+      throw connectionError;
+    }
+    const parameters: QueryParameters = {
+      where: condition,
+    };
+    if (transaction) {
+      parameters.transaction = transaction;
+    }
+    return this.Instance[table][action](parameters);
   }
 }
 

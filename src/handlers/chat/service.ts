@@ -1,40 +1,28 @@
-import { type Transaction } from 'sequelize';
+import database, { TABLES } from '../../database';
 
-import database from '../../database';
-
-interface Condition {
-  [key: string]: number | string;
+export async function checkChatAccess(
+  chatId: number,
+  userId: number,
+): Promise<boolean> {
+  const userAccess = await database.singleRecordAction({
+    action: 'findOne',
+    condition: {
+      chatId,
+      userId,
+    },
+    table: TABLES.userChats,
+  });
+  return !!userAccess;
 }
 
-interface QueryParameters {
-  transaction?: Transaction;
-  where: Condition;
-}
-
-type SingleRecordActions = 'destroy' | 'findOne';
-
-interface SingleRecordOptions {
-  action: SingleRecordActions,
-  condition: Condition;
-  table: string;
-  transaction?: Transaction;
-}
-
-export async function createTransaction(): Promise<Transaction> {
-  return database.Instance.transaction();
-}
-
-export async function singleRecordAction({
-  action,
-  condition,
-  table,
-  transaction = null,
-}: SingleRecordOptions): Promise<number> {
-  const parameters: QueryParameters = {
-    where: condition,
-  };
-  if (transaction) {
-    parameters.transaction = transaction;
-  }
-  return database.Instance[table][action](parameters);
+export async function saveMessage(
+  authorId: number,
+  chatId: number,
+  text: string,
+): Promise<void> {
+  return database.Instance[TABLES.messages].create({
+    authorId,
+    chatId,
+    text,
+  });
 }

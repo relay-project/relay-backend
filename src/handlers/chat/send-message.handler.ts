@@ -1,16 +1,16 @@
 import CustomError from '../../utilities/custom-error';
-// import database from '../../database';
 import type { HandlerOptions } from '../../types';
 import response from '../../utilities/response';
-// import { TABLES } from '../../configuration';
-import { inviteUserSchema, type ValidationResult } from './validation';
-import { TABLES } from '../../configuration';
+import { RESPONSE_MESSAGES, RESPONSE_STATUSES } from '../../configuration';
+import sendMessageSchema, { type ValidationResult } from './validation';
+import * as service from './service';
 
-interface InviteUserPayload {
-  userId: number;
+interface SendMessagePayload {
+  chatId: number;
+  text: string;
 }
 
-export default async function inviteUserHandler({
+export default async function sendMessageHandler({
   connection,
   event,
   payload,
@@ -20,7 +20,7 @@ export default async function inviteUserHandler({
     const {
       error: validationError,
       value,
-    }: ValidationResult<InviteUserPayload> = inviteUserSchema.validate(
+    }: ValidationResult<SendMessagePayload> = sendMessageSchema.validate(
       payload,
     );
     if (validationError) {
@@ -29,22 +29,23 @@ export default async function inviteUserHandler({
       });
     }
 
-    const { userId: invitedId } = value;
+    const { chatId, text } = value;
 
-    const isAlreadyInvited = await service.singleRecordAction({
-      action: 'findOne',
-      condition: {
+    const chatAccess = await service.checkChatAccess(chatId, userId);
+    if (!chatAccess) {
+      throw new CustomError({
+        info: RESPONSE_MESSAGES.invalidChatId,
+        status: RESPONSE_STATUSES.badRequest,
+      });
+    }
 
-      },
-      table: TABLES.chatInvitations,
-    });
+    await service.saveMessage(userId, chatId, text);
+
+    // TODO: notify the room
 
     return response({
       connection,
       event,
-      payload: {
-
-      },
     });
   } catch (error) {
     if (error instanceof CustomError) {
