@@ -1,9 +1,8 @@
-import { createHash } from './service';
 import CustomError from '../../utilities/custom-error';
-import database from '../../database';
-import { EVENTS, TABLES } from '../../configuration';
+import { EVENTS } from '../../configuration';
 import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
+import * as service from './service';
 import { updateRecoveryDataSchema, type ValidationResult } from './validation';
 
 interface UpdateRecoveryDataPayload {
@@ -37,18 +36,8 @@ export async function handler({
       newRecoveryQuestion,
     } = value;
 
-    const newRecoveryAnswerHash = await createHash(newRecoveryAnswer);
-    await database.Instance[TABLES.users].update(
-      {
-        recoveryAnswer: newRecoveryAnswerHash,
-        recoveryQuestion: newRecoveryQuestion,
-      },
-      {
-        where: {
-          id: userId,
-        },
-      },
-    );
+    const newRecoveryAnswerHash = await service.createHash(newRecoveryAnswer);
+    await service.updateRecoveryData(userId, newRecoveryAnswerHash, newRecoveryQuestion);
 
     return response({
       connection,

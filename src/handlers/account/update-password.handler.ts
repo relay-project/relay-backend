@@ -1,14 +1,11 @@
-import { composeSecret, createToken } from '../../utilities/jwt';
 import CustomError from '../../utilities/custom-error';
-import database from '../../database';
-import type { HandlerData } from '../../types';
-import response from '../../utilities/response';
 import {
   EVENTS,
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
-  TABLES,
 } from '../../configuration';
+import type { HandlerData } from '../../types';
+import response from '../../utilities/response';
 import * as service from './service';
 import { updatePasswordSchema, type ValidationResult } from './validation';
 
@@ -41,22 +38,12 @@ export async function handler({
       oldPassword,
     } = value;
 
-    const transaction = await database.Instance.transaction();
+    const transaction = await service.createTransaction();
     try {
-      const [passwordRecord, secretRecord] = await Promise.all([
-        database.Instance[TABLES.passwords].findOne({
-          transaction,
-          where: {
-            userId,
-          },
-        }),
-        database.Instance[TABLES.secrets].findOne({
-          transaction,
-          where: {
-            userId,
-          },
-        }),
-      ]);
+      const [passwordRecord, secretRecord] = await service.getPasswordAndSecret(
+        userId,
+        transaction,
+      );
       if (!(passwordRecord && secretRecord)) {
         throw new CustomError({
           info: RESPONSE_MESSAGES.unauthorized,
@@ -74,21 +61,8 @@ export async function handler({
 
       const newPasswordHash = await service.createHash(newPassword);
       const [token] = await Promise.all([
-        createToken(
-          userId,
-          composeSecret(newPasswordHash, secretRecord.secret),
-        ),
-        database.Instance[TABLES.passwords].update(
-          {
-            hash: newPasswordHash,
-          },
-          {
-            transaction,
-            where: {
-              userId,
-            },
-          },
-        ),
+        service.createNewToken(userId, newPasswordHash, secretRecord.secret),
+        service.updatePassword(userId, newPasswordHash, transaction),
       ]);
 
       await transaction.commit();

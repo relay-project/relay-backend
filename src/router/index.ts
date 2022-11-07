@@ -2,7 +2,7 @@ import { readdir } from 'node:fs/promises';
 import type { Socket } from 'socket.io';
 
 import authorizationDecorator from '../decorators/authorization.decorator';
-import completeLogoutHandler from '../handlers/auth/complete-logout.handler';
+import { handler as completeLogoutHandler } from '../handlers/auth/complete-logout.handler';
 // import inviteUserHandler from '../handlers/chat/invite-user';
 import { EVENTS } from '../configuration';
 import type { HandlerData, Payload } from '../types';

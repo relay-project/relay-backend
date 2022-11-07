@@ -1,25 +1,22 @@
-import { createHash } from './service';
 import CustomError from '../../utilities/custom-error';
-import database from '../../database';
-import type { HandlerOptions } from '../../types';
-import response from '../../utilities/response';
 import {
+  EVENTS,
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
-  TABLES,
 } from '../../configuration';
+import type { HandlerData } from '../../types';
+import response from '../../utilities/response';
+import * as service from './service';
 
-export default async function completeLogoutHandler({
+export const authorize = true;
+export const event = EVENTS.COMPLETE_LOGOUT;
+
+export async function handler({
   connection,
-  event,
   userId,
-}: HandlerOptions): Promise<boolean> {
+}: HandlerData): Promise<boolean> {
   try {
-    const secretRecord = await database.Instance[TABLES.secrets].findOne({
-      where: {
-        userId,
-      },
-    });
+    const secretRecord = await service.getSecret(userId);
     if (!secretRecord) {
       throw new CustomError({
         info: RESPONSE_MESSAGES.unauthorized,
@@ -27,17 +24,8 @@ export default async function completeLogoutHandler({
       });
     }
 
-    const newSecretHash = await createHash(`${secretRecord.userId}-${Date.now()}`);
-    await database.Instance[TABLES.secrets].update(
-      {
-        secret: newSecretHash,
-      },
-      {
-        where: {
-          userId,
-        },
-      },
-    );
+    const newSecretHash = await service.createHash(`${secretRecord.userId}-${Date.now()}`);
+    await service.updateSecret(userId, newSecretHash);
 
     return response({
       connection,

@@ -5,14 +5,13 @@ import {
 } from '../utilities/jwt';
 import createRoomID, { ROOM_PREFIXES } from '../utilities/rooms';
 import CustomError from '../utilities/custom-error';
-import database from '../database';
+import database, { TABLES } from '../database';
 import { HandlerOptions } from '../types';
 import response from '../utilities/response';
 import {
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
   ROLES,
-  TABLES,
 } from '../configuration';
 
 type AuthorizationDecoratorOptions = Omit<HandlerOptions, 'userId'> & {
