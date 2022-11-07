@@ -1,27 +1,103 @@
+import { readdir } from 'node:fs/promises';
 import type { Socket } from 'socket.io';
 
 import authorizationDecorator from '../decorators/authorization.decorator';
 import completeLogoutHandler from '../handlers/auth/complete-logout.handler';
-import deleteAccountHandler from '../handlers/account/delete-account.handler';
-import inviteUserHandler from '../handlers/chat/invite-user.handler';
+// import inviteUserHandler from '../handlers/chat/invite-user';
 import { EVENTS } from '../configuration';
-import type { Payload } from '../types';
+import type { HandlerData, Payload } from '../types';
 import recoveryFinalHandler from '../handlers/auth/recovery-final.handler';
 import recoveryInitialHandler from '../handlers/auth/recovery-initial.handler';
 import sendMessageHandler from '../handlers/chat/send-message.handler';
 import signInHandler from '../handlers/auth/sign-in.handler';
 import signUpHandler from '../handlers/auth/sign-up.handler';
-import updatePasswordHandler from '../handlers/account/update-password.handler';
-import updateRecoveryDataHandler from '../handlers/account/update-recovery-data.handler';
+import log from '../utilities/logger';
 
-// class Router {
-//   handlers: [];
+interface ImportedHandler {
+  authorize?: boolean;
+  checkAdmin?: boolean;
+  event: string;
+  handler: (data: HandlerData) => Promise<boolean>;
+}
 
-//   // TODO: automatically load all of the handlers and register them for every connection
-//   constructor() {
-//     this.handlers = [];
-//   }
-// }
+type PreparedHandler = Required<ImportedHandler>;
+
+class Router {
+  handlers: PreparedHandler[];
+
+  constructor() {
+    this.handlers = [];
+  }
+
+  async loadHandlers(): Promise<void> {
+    const path = `${process.cwd()}/build/handlers`;
+    const directories = await readdir(path);
+    if (directories.length === 0) {
+      return log('handlers not found');
+    }
+
+    // TODO: remove
+    const filtered = directories.filter((directory: string): boolean => directory === 'account');
+
+    await Promise.all(filtered.map(async (directory: string): Promise<void | void[]> => {
+      const directoryPath = `${path}/${directory}`;
+      const files = await readdir(directoryPath);
+      const handlers = files.filter(
+        (name: string): boolean => name.includes('handler') && !name.includes('map'),
+      );
+      if (handlers.length === 0) {
+        return log(`${directory} does not have any handlers`);
+      }
+
+      return Promise.all(handlers.map(async (name: string): Promise<void> => {
+        const {
+          authorize = false,
+          checkAdmin = false,
+          event,
+          handler,
+        }: ImportedHandler = await import(`${directoryPath}/${name}`);
+        log(`- loaded handler: ${event}`);
+        this.handlers.push({
+          authorize,
+          checkAdmin,
+          event,
+          handler,
+        });
+      }));
+    }));
+    return log('all handlers are loaded');
+  }
+
+  registerHandlers(connection: Socket): void {
+    this.handlers.forEach(({
+      authorize,
+      checkAdmin,
+      event,
+      handler,
+    }: ImportedHandler): void => {
+      connection.on(
+        event,
+        (payload: Payload): Promise<boolean> => {
+          if (authorize) {
+            return authorizationDecorator({
+              callback: handler,
+              checkAdmin,
+              connection,
+              event,
+              payload,
+            });
+          }
+          return handler({
+            connection,
+            payload,
+          });
+        },
+      );
+    });
+  }
+}
+
+export const routerInstance = new Router();
 
 export default function router(connection: Socket): void {
   connection.on(
@@ -33,33 +109,15 @@ export default function router(connection: Socket): void {
       payload,
     }),
   );
-  connection.on(
-    EVENTS.DELETE_ACCOUNT,
-    (payload: Payload): Promise<boolean> => authorizationDecorator({
-      callback: deleteAccountHandler,
-      connection,
-      event: EVENTS.DELETE_ACCOUNT,
-      payload,
-    }),
-  );
-  connection.on(
-    EVENTS.FIND_USERS,
-    (payload: Payload): Promise<boolean> => authorizationDecorator({
-      callback: updatePasswordHandler,
-      connection,
-      event: EVENTS.FIND_USERS,
-      payload,
-    }),
-  );
-  connection.on(
-    EVENTS.INVITE_USER,
-    (payload: Payload): Promise<boolean> => authorizationDecorator({
-      callback: inviteUserHandler,
-      connection,
-      event: EVENTS.INVITE_USER,
-      payload,
-    }),
-  );
+  // connection.on(
+  //   EVENTS.INVITE_USER,
+  //   (payload: Payload): Promise<boolean> => authorizationDecorator({
+  //     callback: inviteUserHandler,
+  //     connection,
+  //     event: EVENTS.INVITE_USER,
+  //     payload,
+  //   }),
+  // );
   connection.on(
     EVENTS.RECOVERY_FINAL_STAGE,
     (payload: Payload): Promise<boolean> => recoveryFinalHandler({
@@ -98,24 +156,6 @@ export default function router(connection: Socket): void {
     (payload: Payload): Promise<boolean> => signUpHandler({
       connection,
       event: EVENTS.SIGN_UP,
-      payload,
-    }),
-  );
-  connection.on(
-    EVENTS.UPDATE_PASSWORD,
-    (payload: Payload): Promise<boolean> => authorizationDecorator({
-      callback: updatePasswordHandler,
-      connection,
-      event: EVENTS.UPDATE_PASSWORD,
-      payload,
-    }),
-  );
-  connection.on(
-    EVENTS.UPDATE_RECOVERY_DATA,
-    (payload: Payload): Promise<boolean> => authorizationDecorator({
-      callback: updateRecoveryDataHandler,
-      connection,
-      event: EVENTS.UPDATE_RECOVERY_DATA,
       payload,
     }),
   );

@@ -1,19 +1,17 @@
-import database from '../../database';
-import type { HandlerOptions } from '../../types';
+import { deleteAccount } from './service';
+import { EVENTS } from '../../configuration';
+import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
-import { TABLES } from '../../configuration';
 
-export default async function deleteAccountHandler({
+export const authorize = true;
+export const event = EVENTS.DELETE_ACCOUNT;
+
+export async function handler({
   connection,
-  event,
   userId,
-}: HandlerOptions): Promise<boolean> {
+}: HandlerData): Promise<boolean> {
   try {
-    await database.Instance[TABLES.users].destroy({
-      where: {
-        id: userId,
-      },
-    });
+    await deleteAccount(userId);
 
     return response({
       connection,

@@ -8,11 +8,13 @@ import {
 import database from './database';
 import gracefulShutdown from './utilities/graceful-shutdown';
 import log from './utilities/logger';
-import router from './router';
+import router, { routerInstance } from './router';
 
 export default async function createServer(): Promise<void> {
   await database.connect();
   await database.registerModels();
+
+  await routerInstance.loadHandlers();
 
   const server = new IOServer({
     cors: {
@@ -28,6 +30,7 @@ export default async function createServer(): Promise<void> {
       log(`connected ${socket.id}`);
 
       router(socket);
+      routerInstance.registerHandlers(socket);
       socket.on(
         EVENTS.DISCONNECT,
         (reason: string): void => log(`disconnected ${socket.id} (${reason})`),

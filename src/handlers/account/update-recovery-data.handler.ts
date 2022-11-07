@@ -1,9 +1,9 @@
 import { createHash } from './service';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
-import type { HandlerOptions } from '../../types';
+import { EVENTS, TABLES } from '../../configuration';
+import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
-import { TABLES } from '../../configuration';
 import { updateRecoveryDataSchema, type ValidationResult } from './validation';
 
 interface UpdateRecoveryDataPayload {
@@ -11,12 +11,14 @@ interface UpdateRecoveryDataPayload {
   newRecoveryQuestion: string;
 }
 
-export default async function updateRecoveryDataHandler({
+export const authorize = true;
+export const event = EVENTS.UPDATE_RECOVERY_DATA;
+
+export async function handler({
   connection,
-  event,
   payload,
   userId,
-}: HandlerOptions): Promise<boolean> {
+}: HandlerData): Promise<boolean> {
   try {
     const {
       error: validationError,

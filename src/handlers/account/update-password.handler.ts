@@ -1,9 +1,10 @@
 import { composeSecret, createToken } from '../../utilities/jwt';
 import CustomError from '../../utilities/custom-error';
 import database from '../../database';
-import type { HandlerOptions } from '../../types';
+import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
 import {
+  EVENTS,
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
   TABLES,
@@ -16,12 +17,14 @@ interface UpdatePasswordPayload {
   oldPassword: string;
 }
 
-export default async function updatePasswordHandler({
+export const authorize = true;
+export const event = EVENTS.UPDATE_PASSWORD;
+
+export async function handler({
   connection,
-  event,
   payload,
   userId,
-}: HandlerOptions): Promise<boolean> {
+}: HandlerData): Promise<boolean> {
   try {
     const {
       error: validationError,

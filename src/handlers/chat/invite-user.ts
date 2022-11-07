@@ -14,7 +14,7 @@ export default async function inviteUserHandler({
   connection,
   event,
   payload,
-  userId,
+  // userId,
 }: HandlerOptions): Promise<boolean> {
   try {
     const {
@@ -29,15 +29,15 @@ export default async function inviteUserHandler({
       });
     }
 
-    const { userId: invitedId } = value;
+    // const { userId: invitedId } = value;
 
-    const isAlreadyInvited = await service.singleRecordAction({
-      action: 'findOne',
-      condition: {
+    // const isAlreadyInvited = await service.singleRecordAction({
+    //   action: 'findOne',
+    //   condition: {
 
-      },
-      table: TABLES.chatInvitations,
-    });
+    //   },
+    //   table: TABLES.chatInvitations,
+    // });
 
     return response({
       connection,
