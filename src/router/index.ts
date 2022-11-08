@@ -2,15 +2,10 @@ import { readdir } from 'node:fs/promises';
 import type { Socket } from 'socket.io';
 
 import authorizationDecorator from '../decorators/authorization.decorator';
-import { handler as completeLogoutHandler } from '../handlers/auth/complete-logout.handler';
 // import inviteUserHandler from '../handlers/chat/invite-user';
-import { EVENTS } from '../configuration';
+// import { EVENTS } from '../configuration';
 import type { HandlerData, Payload } from '../types';
-import recoveryFinalHandler from '../handlers/auth/recovery-final.handler';
-import recoveryInitialHandler from '../handlers/auth/recovery-initial.handler';
-import sendMessageHandler from '../handlers/chat/send-message.handler';
-import signInHandler from '../handlers/auth/sign-in.handler';
-import signUpHandler from '../handlers/auth/sign-up.handler';
+// import sendMessageHandler from '../handlers/chat/send-message.handler';
 import log from '../utilities/logger';
 
 interface ImportedHandler {
@@ -29,7 +24,7 @@ class Router {
     this.handlers = [];
   }
 
-  async loadHandlers(): Promise<void> {
+  async loadHandlers(): Promise<(void | void[])[] | void> {
     const path = `${process.cwd()}/build/handlers`;
     const directories = await readdir(path);
     if (directories.length === 0) {
@@ -37,9 +32,9 @@ class Router {
     }
 
     // TODO: remove
-    const filtered = directories.filter((directory: string): boolean => directory === 'account');
+    const filtered = directories.filter((directory: string): boolean => directory !== 'chat');
 
-    await Promise.all(filtered.map(async (directory: string): Promise<void | void[]> => {
+    return Promise.all(filtered.map(async (directory: string): Promise<void | void[]> => {
       const directoryPath = `${path}/${directory}`;
       const files = await readdir(directoryPath);
       const handlers = files.filter(
@@ -56,6 +51,9 @@ class Router {
           event,
           handler,
         }: ImportedHandler = await import(`${directoryPath}/${name}`);
+        if (!(event && handler)) {
+          throw new Error(`Invalid handler [${name} / ${event}] structure!`);
+        }
         log(`- loaded handler: ${event}`);
         this.handlers.push({
           authorize,
@@ -65,7 +63,6 @@ class Router {
         });
       }));
     }));
-    return log('all handlers are loaded');
   }
 
   registerHandlers(connection: Socket): void {
@@ -97,66 +94,4 @@ class Router {
   }
 }
 
-export const routerInstance = new Router();
-
-export default function router(connection: Socket): void {
-  connection.on(
-    EVENTS.COMPLETE_LOGOUT,
-    (payload: Payload): Promise<boolean> => authorizationDecorator({
-      callback: completeLogoutHandler,
-      connection,
-      event: EVENTS.COMPLETE_LOGOUT,
-      payload,
-    }),
-  );
-  // connection.on(
-  //   EVENTS.INVITE_USER,
-  //   (payload: Payload): Promise<boolean> => authorizationDecorator({
-  //     callback: inviteUserHandler,
-  //     connection,
-  //     event: EVENTS.INVITE_USER,
-  //     payload,
-  //   }),
-  // );
-  connection.on(
-    EVENTS.RECOVERY_FINAL_STAGE,
-    (payload: Payload): Promise<boolean> => recoveryFinalHandler({
-      connection,
-      event: EVENTS.RECOVERY_FINAL_STAGE,
-      payload,
-    }),
-  );
-  connection.on(
-    EVENTS.RECOVERY_INITIAL_STAGE,
-    (payload: Payload): Promise<boolean> => recoveryInitialHandler({
-      connection,
-      event: EVENTS.RECOVERY_INITIAL_STAGE,
-      payload,
-    }),
-  );
-  connection.on(
-    EVENTS.SEND_MESSAGE,
-    (payload: Payload): Promise<boolean> => authorizationDecorator({
-      callback: sendMessageHandler,
-      connection,
-      event: EVENTS.SEND_MESSAGE,
-      payload,
-    }),
-  );
-  connection.on(
-    EVENTS.SIGN_IN,
-    (payload: Payload): Promise<boolean> => signInHandler({
-      connection,
-      event: EVENTS.SIGN_IN,
-      payload,
-    }),
-  );
-  connection.on(
-    EVENTS.SIGN_UP,
-    (payload: Payload): Promise<boolean> => signUpHandler({
-      connection,
-      event: EVENTS.SIGN_UP,
-      payload,
-    }),
-  );
-}
+export default new Router();

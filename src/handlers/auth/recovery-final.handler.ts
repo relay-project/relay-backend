@@ -1,13 +1,12 @@
 import CustomError from '../../utilities/custom-error';
-import database from '../../database';
-import type { HandlerOptions } from '../../types';
-import { recoveryFinalSchema, type ValidationResult } from './validation';
-import response from '../../utilities/response';
 import {
+  EVENTS,
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
-  TABLES,
 } from '../../configuration';
+import type { HandlerData } from '../../types';
+import { recoveryFinalSchema, type ValidationResult } from './validation';
+import response from '../../utilities/response';
 import * as service from './service';
 
 interface RecoveryFinalPayload {
@@ -21,11 +20,12 @@ const unauthorizedError = new CustomError({
   status: RESPONSE_STATUSES.unauthorized,
 });
 
-export default async function recoveryFinalHandler({
+export const event = EVENTS.RECOVERY_FINAL_STAGE;
+
+export async function handler({
   connection,
-  event,
   payload,
-}: HandlerOptions): Promise<boolean> {
+}: HandlerData): Promise<boolean> {
   try {
     const {
       error: validationError,
@@ -43,10 +43,14 @@ export default async function recoveryFinalHandler({
       userId,
     } = value;
 
-    const [passwordRecord, secretRecord, userRecord] = await Promise.all([
-      service.getSingleRecord(TABLES.passwords, { userId }),
-      service.getSingleRecord(TABLES.secrets, { userId }),
-      service.getSingleRecord(TABLES.users, { id: userId }),
+    const [
+      passwordRecord,
+      secretRecord,
+      userRecord,
+    ] = await Promise.all([
+      service.getPassword(userId),
+      service.getSecret(userId),
+      service.getUser(userId, true),
     ]);
     if (!(passwordRecord && secretRecord && userRecord)) {
       throw unauthorizedError;
@@ -65,43 +69,16 @@ export default async function recoveryFinalHandler({
       service.createHash(`${userRecord.id}-${userRecord.login}-${Date.now()}`),
     ]);
 
-    const transaction = await database.Instance.transaction();
+    const transaction = await service.createTransaction();
     try {
-      await Promise.all([
-        database.Instance[TABLES.passwords].update(
-          {
-            hash: newPasswordHash,
-          },
-          {
-            transaction,
-            where: {
-              id: passwordRecord.id,
-            },
-          },
-        ),
-        database.Instance[TABLES.secrets].update(
-          {
-            secret: newSecretHash,
-          },
-          {
-            transaction,
-            where: {
-              id: secretRecord.id,
-            },
-          },
-        ),
-        database.Instance[TABLES.users].update(
-          {
-            failedLoginAttempts: 0,
-          },
-          {
-            transaction,
-            where: {
-              id: userRecord.id,
-            },
-          },
-        ),
-      ]);
+      await service.recoveryFinalUpdateData(
+        newPasswordHash,
+        newSecretHash,
+        passwordRecord.id,
+        secretRecord.id,
+        userId,
+        transaction,
+      );
       await transaction.commit();
 
       return response({

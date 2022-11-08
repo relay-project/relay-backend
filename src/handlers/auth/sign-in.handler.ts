@@ -1,14 +1,12 @@
-import { composeSecret, createToken } from '../../utilities/jwt';
 import createRoomID, { ROOM_PREFIXES } from '../../utilities/rooms';
 import CustomError from '../../utilities/custom-error';
-import database from '../../database';
-import type { HandlerOptions } from '../../types';
 import {
+  EVENTS,
   MAX_FAILED_LOGIN_ATTEMPTS,
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
-  TABLES,
 } from '../../configuration';
+import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
 import * as service from './service';
 import { signInSchema, type ValidationResult } from './validation';
@@ -23,11 +21,12 @@ const unauthorizedError = new CustomError({
   status: RESPONSE_STATUSES.unauthorized,
 });
 
-export default async function signInHandler({
+export const event = EVENTS.SIGN_IN;
+
+export async function handler({
   connection,
-  event,
   payload,
-}: HandlerOptions): Promise<boolean> {
+}: HandlerData): Promise<boolean> {
   try {
     const {
       error: validationError,
@@ -43,12 +42,7 @@ export default async function signInHandler({
       login,
       password,
     } = value;
-    const userRecord = await service.getSingleRecord(
-      TABLES.users,
-      {
-        login: login.toLowerCase(),
-      },
-    );
+    const userRecord = await service.getUser(login.toLowerCase());
     if (!userRecord) {
       throw unauthorizedError;
     }
@@ -60,8 +54,8 @@ export default async function signInHandler({
     }
 
     const [passwordRecord, secretRecord] = await Promise.all([
-      service.getSingleRecord(TABLES.passwords, { userId: userRecord.id }),
-      service.getSingleRecord(TABLES.secrets, { userId: userRecord.id }),
+      service.getPassword(userRecord.id),
+      service.getSecret(userRecord.id),
     ]);
     if (!(passwordRecord && secretRecord)) {
       throw unauthorizedError;
@@ -69,35 +63,22 @@ export default async function signInHandler({
 
     const isCorrect = await service.compareHashes(password, passwordRecord.hash);
     if (!isCorrect) {
-      await database.Instance[TABLES.users].update(
-        {
-          failedLoginAttempts: userRecord.failedLoginAttempts + 1,
-        },
-        {
-          where: {
-            id: userRecord.id,
-          },
-        },
+      await service.setFailedAttempts(
+        userRecord.id,
+        userRecord.failedLoginAttempts + 1,
       );
       throw unauthorizedError;
     }
 
-    const promises = [createToken(
+    const promises = [service.createNewToken(
+      passwordRecord.hash,
+      secretRecord.secret,
       userRecord.id,
-      composeSecret(passwordRecord.hash, secretRecord.secret),
-    )];
+    )] as Promise<string | void>[];
     if (userRecord.failedLoginAttempts > 0) {
-      promises.push(database.Instance[TABLES.users].update(
-        {
-          failedLoginAttempts: 0,
-        },
-        {
-          where: {
-            id: userRecord.id,
-          },
-        },
-      ));
+      promises.push(service.setFailedAttempts(userRecord.id, 0));
     }
+
     const [token] = await Promise.all(promises);
     connection.join(createRoomID(ROOM_PREFIXES.user, userRecord.id));
 

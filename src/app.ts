@@ -2,19 +2,20 @@ import { Server as IOServer, Socket } from 'socket.io';
 
 import {
   ALLOWED_ORIGINS,
+  APPLICATION_NAME,
   EVENTS,
   PORT,
 } from './configuration';
 import database from './database';
 import gracefulShutdown from './utilities/graceful-shutdown';
 import log from './utilities/logger';
-import router, { routerInstance } from './router';
+import router from './router';
 
 export default async function createServer(): Promise<void> {
   await database.connect();
   await database.registerModels();
 
-  await routerInstance.loadHandlers();
+  await router.loadHandlers();
 
   const server = new IOServer({
     cors: {
@@ -26,14 +27,13 @@ export default async function createServer(): Promise<void> {
 
   server.on(
     EVENTS.CONNECTION,
-    (socket: Socket): void => {
-      log(`connected ${socket.id}`);
+    (connection: Socket): void => {
+      log(`connected ${connection.id}`);
 
-      router(socket);
-      routerInstance.registerHandlers(socket);
-      socket.on(
+      router.registerHandlers(connection);
+      connection.on(
         EVENTS.DISCONNECT,
-        (reason: string): void => log(`disconnected ${socket.id} (${reason})`),
+        (reason: string): void => log(`disconnected ${connection.id} (${reason})`),
       );
     },
   );
@@ -49,5 +49,5 @@ export default async function createServer(): Promise<void> {
     (signal): Promise<void> => gracefulShutdown(signal, server, database),
   );
 
-  log(`RELAY launched on port ${PORT}`);
+  log(`${APPLICATION_NAME} launched on port ${PORT}`);
 }

@@ -1,23 +1,24 @@
 import CustomError from '../../utilities/custom-error';
-import { getSingleRecord } from './service';
-import type { HandlerOptions } from '../../types';
-import { loginSchema, type ValidationResult } from './validation';
-import response from '../../utilities/response';
 import {
+  EVENTS,
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
-  TABLES,
 } from '../../configuration';
+import { getUser } from './service';
+import type { HandlerData } from '../../types';
+import { loginSchema, type ValidationResult } from './validation';
+import response from '../../utilities/response';
 
 interface RecoveryInitialPayload {
   login: string;
 }
 
-export default async function recoveryInitialHandler({
+export const event = EVENTS.RECOVERY_INITIAL_STAGE;
+
+export async function handler({
   connection,
-  event,
   payload,
-}: HandlerOptions): Promise<boolean> {
+}: HandlerData): Promise<boolean> {
   try {
     const {
       error: validationError,
@@ -29,16 +30,9 @@ export default async function recoveryInitialHandler({
       });
     }
 
-    const {
-      login,
-    } = value;
+    const { login } = value;
 
-    const userRecord = await getSingleRecord(
-      TABLES.users,
-      {
-        login: login.toLowerCase(),
-      },
-    );
+    const userRecord = await getUser(login.toLowerCase());
     if (!userRecord) {
       throw new CustomError({
         info: RESPONSE_MESSAGES.unauthorized,
