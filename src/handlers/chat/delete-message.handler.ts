@@ -1,20 +1,26 @@
 import CustomError from '../../utilities/custom-error';
 import { deleteMessageSchema, type ValidationResult } from './validation';
-import type { HandlerOptions } from '../../types';
+import {
+  EVENTS,
+  RESPONSE_MESSAGES,
+  RESPONSE_STATUSES,
+} from '../../configuration';
+import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
-import { RESPONSE_MESSAGES, RESPONSE_STATUSES } from '../../configuration';
 import * as service from './service';
 
 interface DeleteMessagePayload {
   messageId: number;
 }
 
-export default async function deleteMessageHandler({
+export const authorize = true;
+export const event = EVENTS.DELETE_MESSAGE;
+
+export async function handler({
   connection,
-  event,
   payload,
   userId,
-}: HandlerOptions): Promise<boolean> {
+}: HandlerData): Promise<boolean> {
   try {
     const {
       error: validationError,

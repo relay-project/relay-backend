@@ -31,10 +31,7 @@ class Router {
       return log('handlers not found');
     }
 
-    // TODO: remove
-    const filtered = directories.filter((directory: string): boolean => directory !== 'chat');
-
-    return Promise.all(filtered.map(async (directory: string): Promise<void | void[]> => {
+    return Promise.all(directories.map(async (directory: string): Promise<void | void[]> => {
       const directoryPath = `${path}/${directory}`;
       const files = await readdir(directoryPath);
       const handlers = files.filter(

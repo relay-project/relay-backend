@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { Console } from 'console';
 
 import {
@@ -10,6 +11,7 @@ const logger = new Console(process.stdout, process.stderr);
 
 export default function log(...message: any[]): void {
   if (NODE_ENV === ENVS.development) {
-    logger.log(`[${APPLICATION_NAME} - ${new Date().toISOString()}] ${message}`);
+    logger.log(`${chalk.dim(chalk.green(`[${
+      APPLICATION_NAME} - ${new Date().toISOString()}]`))} ${message}`);
   }
 }

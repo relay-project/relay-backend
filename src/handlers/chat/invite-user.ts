@@ -1,25 +1,27 @@
 import CustomError from '../../utilities/custom-error';
 // import database from '../../database';
-import type { HandlerOptions } from '../../types';
+import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
 // import { TABLES } from '../../configuration';
 import { inviteUserSchema, type ValidationResult } from './validation';
-import { TABLES } from '../../configuration';
+import { EVENTS } from '../../configuration';
 
 interface InviteUserPayload {
   userId: number;
 }
 
-export default async function inviteUserHandler({
+export const authorize = true;
+export const event = EVENTS.INVITE_USER;
+
+export async function handler({
   connection,
-  event,
   payload,
   // userId,
-}: HandlerOptions): Promise<boolean> {
+}: HandlerData): Promise<boolean> {
   try {
     const {
       error: validationError,
-      value,
+      // value,
     }: ValidationResult<InviteUserPayload> = inviteUserSchema.validate(
       payload,
     );

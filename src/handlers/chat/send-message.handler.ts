@@ -1,7 +1,11 @@
 import CustomError from '../../utilities/custom-error';
-import type { HandlerOptions } from '../../types';
+import {
+  EVENTS,
+  RESPONSE_MESSAGES,
+  RESPONSE_STATUSES,
+} from '../../configuration';
+import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
-import { RESPONSE_MESSAGES, RESPONSE_STATUSES } from '../../configuration';
 import { sendMessageSchema, type ValidationResult } from './validation';
 import * as service from './service';
 
@@ -10,12 +14,14 @@ interface SendMessagePayload {
   text: string;
 }
 
-export default async function sendMessageHandler({
+export const authorize = true;
+export const event = EVENTS.SEND_MESSAGE;
+
+export async function handler({
   connection,
-  event,
   payload,
   userId,
-}: HandlerOptions): Promise<boolean> {
+}: HandlerData): Promise<boolean> {
   try {
     const {
       error: validationError,
