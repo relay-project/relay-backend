@@ -6,7 +6,7 @@ import {
 import createRoomID, { ROOM_PREFIXES } from '../utilities/rooms';
 import CustomError from '../utilities/custom-error';
 import database, { TABLES } from '../database';
-import { HandlerOptions } from '../types';
+import type { HandlerData } from '../types';
 import response from '../utilities/response';
 import {
   RESPONSE_MESSAGES,
@@ -14,9 +14,10 @@ import {
   ROLES,
 } from '../configuration';
 
-type AuthorizationDecoratorOptions = Omit<HandlerOptions, 'userId'> & {
-  callback: (options: HandlerOptions) => Promise<boolean>;
+type AuthorizationDecoratorOptions = Omit<HandlerData, 'userId'> & {
+  callback: (options: HandlerData) => Promise<boolean>;
   checkAdmin?: boolean;
+  event: string;
 }
 
 export default async function authorizationDecorator({
@@ -82,7 +83,6 @@ export default async function authorizationDecorator({
 
     return callback({
       connection,
-      event,
       payload: payloadWithoutToken,
       userId,
     });

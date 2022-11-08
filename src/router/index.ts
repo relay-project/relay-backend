@@ -2,10 +2,8 @@ import { readdir } from 'node:fs/promises';
 import type { Socket } from 'socket.io';
 
 import authorizationDecorator from '../decorators/authorization.decorator';
-// import inviteUserHandler from '../handlers/chat/invite-user';
-// import { EVENTS } from '../configuration';
+import calculateOffset from '../utilities/calculate-offset';
 import type { HandlerData, Payload } from '../types';
-// import sendMessageHandler from '../handlers/chat/send-message.handler';
 import log from '../utilities/logger';
 
 interface ImportedHandler {
@@ -13,6 +11,7 @@ interface ImportedHandler {
   checkAdmin?: boolean;
   event: string;
   handler: (data: HandlerData) => Promise<boolean>;
+  paginated?: boolean;
 }
 
 type PreparedHandler = Required<ImportedHandler>;
@@ -47,6 +46,7 @@ class Router {
           checkAdmin = false,
           event,
           handler,
+          paginated = false,
         }: ImportedHandler = await import(`${directoryPath}/${name}`);
         if (!(event && handler)) {
           throw new Error(`Invalid handler [${name} / ${event}] structure!`);
@@ -57,6 +57,7 @@ class Router {
           checkAdmin,
           event,
           handler,
+          paginated,
         });
       }));
     }));
@@ -68,22 +69,30 @@ class Router {
       checkAdmin,
       event,
       handler,
+      paginated,
     }: ImportedHandler): void => {
       connection.on(
         event,
         (payload: Payload): Promise<boolean> => {
+          const mutablePayload = { ...payload };
+          if (paginated) {
+            const { limit = 100, page = 1 } = payload;
+            mutablePayload.limit = limit;
+            mutablePayload.page = page;
+            mutablePayload.offset = calculateOffset(page, limit);
+          }
           if (authorize) {
             return authorizationDecorator({
               callback: handler,
               checkAdmin,
               connection,
               event,
-              payload,
+              payload: mutablePayload,
             });
           }
           return handler({
             connection,
-            payload,
+            payload: mutablePayload,
           });
         },
       );

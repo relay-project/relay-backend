@@ -1,19 +1,15 @@
 import type { Socket } from 'socket.io';
 
+export interface Payload {
+  [key: string]: number | string;
+  limit?: number;
+  offset?: number;
+  page?: number;
+  token?: string;
+}
+
 export interface HandlerData {
   connection: Socket;
   payload?: Payload;
   userId?: number;
-}
-
-export interface HandlerOptions {
-  connection: Socket;
-  event?: string;
-  payload: Payload;
-  userId?: number;
-}
-
-export interface Payload {
-  [key: string]: number | string;
-  token?: string;
 }

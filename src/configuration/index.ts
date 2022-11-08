@@ -37,6 +37,7 @@ export const EVENTS = {
   DELETE_MESSAGE: 'delete-message',
   DISCONNECT: 'disconnect',
   FIND_USERS: 'find-users',
+  GET_CHATS: 'get-chats',
   INVITE_USER: 'invite-user',
   RECOVERY_FINAL_STAGE: 'recovery-final-stage',
   RECOVERY_INITIAL_STAGE: 'recovery-inital-stage',
