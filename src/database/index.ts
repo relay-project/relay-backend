@@ -24,9 +24,24 @@ interface Condition {
   [key: string]: number | string;
 }
 
+export interface CountResult {
+  count: number;
+}
+
+export interface Result extends Condition {
+  createdAt: string;
+  id: number;
+  updatedAt: string;
+}
+
 interface QueryParameters {
   transaction?: Transaction;
   where: Condition;
+}
+
+export interface PaginatedResult {
+  count: number;
+  results: Result[];
 }
 
 type SingleRecordActions = 'destroy' | 'findOne';

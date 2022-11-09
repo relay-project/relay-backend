@@ -10,11 +10,11 @@ export const paginated = true;
 
 export async function handler({
   connection,
-  payload,
+  pagination,
   userId,
 }: HandlerData): Promise<boolean> {
   try {
-    const res = await service.getChats(userId, payload.limit, payload.offset);
+    const res = await service.getChats(userId, pagination.limit, pagination.offset);
     return response({
       connection,
       event,

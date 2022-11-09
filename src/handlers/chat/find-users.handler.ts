@@ -1,10 +1,9 @@
 import CustomError from '../../utilities/custom-error';
-// import database from '../../database';
+import { EVENTS } from '../../configuration';
+import { findUsersSchema, type ValidationResult } from './validation';
 import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
-// import { TABLES } from '../../configuration';
-import findUsersSchema, { type ValidationResult } from './validation';
-import { EVENTS } from '../../configuration';
+import * as service from './service';
 
 interface FindUsersPayload {
   search: string;
@@ -12,16 +11,18 @@ interface FindUsersPayload {
 
 export const authorize = true;
 export const event = EVENTS.FIND_USERS;
+export const paginated = true;
 
 export async function handler({
   connection,
+  pagination,
   payload,
-  // userId,
+  userId,
 }: HandlerData): Promise<boolean> {
   try {
     const {
       error: validationError,
-      // value,
+      value,
     }: ValidationResult<FindUsersPayload> = findUsersSchema.validate(
       payload,
     );
@@ -31,13 +32,19 @@ export async function handler({
       });
     }
 
-    // const { search } = value;
+    const { search } = value;
+    const users = await service.findUsers(
+      search,
+      userId,
+      pagination.limit,
+      pagination.offset,
+    );
 
     return response({
       connection,
       event,
       payload: {
-
+        users,
       },
     });
   } catch (error) {

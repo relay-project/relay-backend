@@ -3,7 +3,11 @@ import type { Socket } from 'socket.io';
 
 import authorizationDecorator from '../decorators/authorization.decorator';
 import calculateOffset from '../utilities/calculate-offset';
-import type { HandlerData, Payload } from '../types';
+import type {
+  HandlerData,
+  Pagination,
+  Payload,
+} from '../types';
 import log from '../utilities/logger';
 
 interface ImportedHandler {
@@ -74,12 +78,18 @@ class Router {
       connection.on(
         event,
         (payload: Payload): Promise<boolean> => {
-          const mutablePayload = { ...payload };
+          const {
+            limit = 100,
+            page = 1,
+            ...payloadWithoutPagination
+          } = payload;
+          let pagination: null | Pagination = null;
           if (paginated) {
-            const { limit = 100, page = 1 } = payload;
-            mutablePayload.limit = limit;
-            mutablePayload.page = page;
-            mutablePayload.offset = calculateOffset(page, limit);
+            pagination = {
+              limit,
+              page,
+              offset: calculateOffset(page, limit),
+            };
           }
           if (authorize) {
             return authorizationDecorator({
@@ -87,12 +97,14 @@ class Router {
               checkAdmin,
               connection,
               event,
-              payload: mutablePayload,
+              pagination,
+              payload: payloadWithoutPagination,
             });
           }
           return handler({
             connection,
-            payload: mutablePayload,
+            pagination,
+            payload: payloadWithoutPagination,
           });
         },
       );

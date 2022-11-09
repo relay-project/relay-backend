@@ -1,28 +1,27 @@
 import CustomError from '../../utilities/custom-error';
-// import database from '../../database';
+import { createChatSchema, type ValidationResult } from './validation';
+import { EVENTS } from '../../configuration';
 import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
-// import { TABLES } from '../../configuration';
-import { inviteUserSchema, type ValidationResult } from './validation';
-import { EVENTS } from '../../configuration';
+import * as service from './service';
 
-interface InviteUserPayload {
-  userId: number;
+interface CreateChatPayload {
+  invited: number[];
 }
 
 export const authorize = true;
-export const event = EVENTS.INVITE_USER;
+export const event = EVENTS.CREATE_CHAT;
 
 export async function handler({
   connection,
   payload,
-  // userId,
+  userId,
 }: HandlerData): Promise<boolean> {
   try {
     const {
       error: validationError,
-      // value,
-    }: ValidationResult<InviteUserPayload> = inviteUserSchema.validate(
+      value,
+    }: ValidationResult<CreateChatPayload> = createChatSchema.validate(
       payload,
     );
     if (validationError) {
@@ -31,22 +30,14 @@ export async function handler({
       });
     }
 
-    // const { userId: invitedId } = value;
+    const { invited } = value;
+    await service.createChat(userId, invited);
 
-    // const isAlreadyInvited = await service.singleRecordAction({
-    //   action: 'findOne',
-    //   condition: {
-
-    //   },
-    //   table: TABLES.chatInvitations,
-    // });
+    // TODO: notify users
 
     return response({
       connection,
       event,
-      payload: {
-
-      },
     });
   } catch (error) {
     if (error instanceof CustomError) {

@@ -6,7 +6,7 @@ import {
 import createRoomID, { ROOM_PREFIXES } from '../utilities/rooms';
 import CustomError from '../utilities/custom-error';
 import database, { TABLES } from '../database';
-import type { HandlerData } from '../types';
+import type { HandlerData, Pagination } from '../types';
 import response from '../utilities/response';
 import {
   RESPONSE_MESSAGES,
@@ -18,6 +18,7 @@ type AuthorizationDecoratorOptions = Omit<HandlerData, 'userId'> & {
   callback: (options: HandlerData) => Promise<boolean>;
   checkAdmin?: boolean;
   event: string;
+  pagination?: Pagination;
 }
 
 export default async function authorizationDecorator({
@@ -25,6 +26,7 @@ export default async function authorizationDecorator({
   checkAdmin = false,
   connection,
   event,
+  pagination = null,
   payload,
 }: AuthorizationDecoratorOptions): Promise<boolean> {
   try {
@@ -84,6 +86,7 @@ export default async function authorizationDecorator({
     return callback({
       connection,
       payload: payloadWithoutToken,
+      pagination,
       userId,
     });
   } catch (error) {

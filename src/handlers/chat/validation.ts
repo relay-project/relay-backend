@@ -2,15 +2,22 @@ import joi from 'joi';
 
 export { type ValidationResult } from 'joi';
 
+export const createChatSchema = joi.object({
+  invited: joi
+    .array()
+    .items(joi.number())
+    .required(),
+});
+
 export const deleteMessageSchema = joi.object({
   messageId: joi
     .number()
     .required(),
 });
 
-export const inviteUserSchema = joi.object({
-  userId: joi
-    .number()
+export const findUsersSchema = joi.object({
+  search: joi
+    .string()
     .required(),
 });
 
@@ -28,12 +35,6 @@ export const updateMessageSchema = joi.object({
     .number()
     .required(),
   text: joi
-    .string()
-    .required(),
-});
-
-export default joi.object({
-  search: joi
     .string()
     .required(),
 });
