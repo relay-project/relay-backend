@@ -28,10 +28,12 @@ export interface CountResult {
   count: number;
 }
 
-export interface Result extends Condition {
-  createdAt: string;
-  id: number;
-  updatedAt: string;
+export interface PaginatedResult {
+  currentPage: number;
+  limit: number;
+  results: Result[];
+  totalCount: number;
+  totalPages: number;
 }
 
 interface QueryParameters {
@@ -39,9 +41,11 @@ interface QueryParameters {
   where: Condition;
 }
 
-export interface PaginatedResult {
-  count: number;
-  results: Result[];
+export interface Result {
+  [key: string]: any;
+  createdAt: string;
+  id: number;
+  updatedAt: string;
 }
 
 type SingleRecordActions = 'destroy' | 'findOne';
@@ -143,7 +147,7 @@ class Database {
     condition,
     table,
     transaction = null,
-  }: SingleRecordOptions): Promise<any> {
+  }: SingleRecordOptions): Promise<Result | void> {
     if (!this.Instance) {
       throw connectionError;
     }

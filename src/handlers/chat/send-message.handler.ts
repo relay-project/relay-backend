@@ -36,7 +36,6 @@ export async function handler({
     }
 
     const { chatId, text } = value;
-
     const chatAccess = await service.checkChatAccess(chatId, userId);
     if (!chatAccess) {
       throw new CustomError({

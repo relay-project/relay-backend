@@ -1,23 +1,25 @@
 import CustomError from '../../utilities/custom-error';
-import { deleteMessageSchema, type ValidationResult } from './validation';
 import {
   EVENTS,
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
 } from '../../configuration';
+import { getChatMessagesSchema, type ValidationResult } from './validation';
 import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
 import * as service from './service';
 
-interface DeleteMessagePayload {
-  messageId: number;
+interface FindUsersPayload {
+  chatId: number;
 }
 
 export const authorize = true;
-export const event = EVENTS.DELETE_MESSAGE;
+export const event = EVENTS.GET_CHAT_MESSAGES;
+export const paginated = true;
 
 export async function handler({
   connection,
+  pagination,
   payload,
   userId,
 }: HandlerData): Promise<boolean> {
@@ -25,7 +27,7 @@ export async function handler({
     const {
       error: validationError,
       value,
-    }: ValidationResult<DeleteMessagePayload> = deleteMessageSchema.validate(
+    }: ValidationResult<FindUsersPayload> = getChatMessagesSchema.validate(
       payload,
     );
     if (validationError) {
@@ -34,20 +36,25 @@ export async function handler({
       });
     }
 
-    const { messageId } = value;
-    const success = await service.deleteMessage(messageId, userId);
-    if (!success) {
+    const { chatId } = value;
+    const chatAccess = await service.checkChatAccess(chatId, userId);
+    if (!chatAccess) {
       throw new CustomError({
-        info: RESPONSE_MESSAGES.invalidMessageId,
+        info: RESPONSE_MESSAGES.invalidChatId,
         status: RESPONSE_STATUSES.badRequest,
       });
     }
 
-    // TODO: notify the room
+    const messages = await service.getChatMessages({
+      chatId,
+      pagination,
+      userId,
+    });
 
     return response({
       connection,
       event,
+      payload: messages,
     });
   } catch (error) {
     if (error instanceof CustomError) {

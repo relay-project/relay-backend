@@ -38,14 +38,13 @@ export async function handler({
       userId,
       pagination.limit,
       pagination.offset,
+      pagination.page,
     );
 
     return response({
       connection,
       event,
-      payload: {
-        users,
-      },
+      payload: users,
     });
   } catch (error) {
     if (error instanceof CustomError) {

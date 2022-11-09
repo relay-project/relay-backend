@@ -2,11 +2,12 @@ import { QueryTypes } from 'sequelize';
 
 import { CHAT_TYPES } from '../../configuration';
 import database, {
-  CountResult,
-  PaginatedResult,
-  Result,
+  type CountResult,
+  type PaginatedResult,
+  type Result,
   TABLES,
 } from '../../database';
+import type { Pagination } from '../../types';
 
 export async function checkChatAccess(
   chatId: number,
@@ -85,8 +86,9 @@ export async function findUsers(
   userId: number,
   limit: number,
   offset: number,
+  page: number,
 ): Promise<PaginatedResult> {
-  const [count, results] = await Promise.all([
+  const [[{ count: totalCount }], results] = await Promise.all([
     database.Instance.query<CountResult>(
       `SELECT COUNT(*) FROM users
         WHERE id <> :userId AND login ILIKE :search;
@@ -118,8 +120,63 @@ export async function findUsers(
     ),
   ]);
   return {
-    count: Number(count[0].count),
+    limit,
+    currentPage: page,
     results,
+    totalCount: Number(totalCount),
+    totalPages: Math.ceil(totalCount / limit) || 1,
+  };
+}
+
+interface GetChatMessagesOptions {
+  chatId: number;
+  pagination: Pagination;
+  userId: number;
+}
+
+export async function getChatMessages({
+  chatId,
+  pagination,
+  userId,
+}: GetChatMessagesOptions): Promise<PaginatedResult> {
+  const [[{ count: totalCount }], results] = await Promise.all([
+    database.Instance.query<CountResult>(
+      'SELECT COUNT(*) FROM messages WHERE "chatId" = :chatId;',
+      {
+        replacements: {
+          chatId,
+        },
+        type: QueryTypes.SELECT,
+      },
+    ),
+    database.Instance.query<Result>(
+      `SELECT
+        m.*,
+        u.login,
+        CASE WHEN m."authorId" = :userId THEN true ESLE false END as "isAuthor"
+        FROM messages m LEFT JOIN users u ON m."authorId" = u.id
+        WHERE m."chatId" = :chatId
+        ORDER BY id DESC   
+        LIMIT :limit
+        OFFSET :offset; 
+      `,
+      {
+        replacements: {
+          chatId,
+          limit: pagination.limit,
+          offset: pagination.offset,
+          userId,
+        },
+        type: QueryTypes.SELECT,
+      },
+    ),
+  ]);
+  return {
+    limit: pagination.limit,
+    currentPage: pagination.page,
+    results,
+    totalCount: Number(totalCount),
+    totalPages: Math.ceil(totalCount / pagination.limit) || 1,
   };
 }
 
@@ -127,9 +184,10 @@ export async function getChats(
   userId: number,
   limit: number,
   offset: number,
-): Promise<{ count: object[], results: object[] }> {
-  const [count, results] = await Promise.all([
-    database.Instance.query(
+  page: number,
+): Promise<PaginatedResult> {
+  const [[{ count: totalCount }], results] = await Promise.all([
+    database.Instance.query<CountResult>(
       'SELECT COUNT(*) FROM user_chats WHERE "userId" = :userId;',
       {
         replacements: {
@@ -138,7 +196,7 @@ export async function getChats(
         type: QueryTypes.SELECT,
       },
     ),
-    database.Instance.query(
+    database.Instance.query<Result>(
       `SELECT c.* FROM user_chats uc LEFT JOIN chats c ON uc."chatId" = c.id
         WHERE uc."userId" = :userId
         ORDER BY id DESC   
@@ -155,10 +213,12 @@ export async function getChats(
       },
     ),
   ]);
-  // TODO: return data properly
   return {
-    count,
+    limit,
+    currentPage: page,
     results,
+    totalCount: Number(totalCount),
+    totalPages: Math.ceil(totalCount / limit) || 1,
   };
 }
 
@@ -166,7 +226,7 @@ export async function saveMessage(
   authorId: number,
   chatId: number,
   text: string,
-): Promise<void> {
+): Promise<Result> {
   return database.Instance[TABLES.messages].create({
     authorId,
     chatId,

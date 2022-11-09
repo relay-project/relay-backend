@@ -21,6 +21,12 @@ export const findUsersSchema = joi.object({
     .required(),
 });
 
+export const getChatMessagesSchema = joi.object({
+  chatId: joi
+    .number()
+    .required(),
+});
+
 export const sendMessageSchema = joi.object({
   chatId: joi
     .number()

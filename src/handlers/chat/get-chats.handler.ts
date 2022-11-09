@@ -1,4 +1,3 @@
-import CustomError from '../../utilities/custom-error';
 import { EVENTS } from '../../configuration';
 import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
@@ -14,22 +13,18 @@ export async function handler({
   userId,
 }: HandlerData): Promise<boolean> {
   try {
-    const res = await service.getChats(userId, pagination.limit, pagination.offset);
+    const chats = await service.getChats(
+      userId,
+      pagination.limit,
+      pagination.offset,
+      pagination.page,
+    );
     return response({
       connection,
       event,
-      payload: res,
+      payload: chats,
     });
   } catch (error) {
-    if (error instanceof CustomError) {
-      return response({
-        connection,
-        details: error.details || '',
-        event,
-        info: error.info,
-        status: error.status,
-      });
-    }
     return response({
       connection,
       error,

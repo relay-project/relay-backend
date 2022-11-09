@@ -2,7 +2,7 @@ import { compare, hash } from 'scryptwrap';
 import type { Transaction } from 'sequelize';
 
 import { composeSecret, createToken } from '../../utilities/jwt';
-import database, { TABLES } from '../../database';
+import database, { Result, TABLES } from '../../database';
 
 export async function compareHashes(
   plaintext: string,
@@ -30,7 +30,7 @@ export async function createTransaction(): Promise<Transaction> {
   return database.createTransaction();
 }
 
-export async function deleteAccount(userId: number): Promise<void> {
+export async function deleteAccount(userId: number): Promise<Result | void> {
   return database.singleRecordAction({
     action: 'destroy',
     condition: {
@@ -43,7 +43,7 @@ export async function deleteAccount(userId: number): Promise<void> {
 export async function getPasswordAndSecret(
   userId: number,
   transaction: Transaction,
-): Promise<any[]> {
+): Promise<(Result | void)[]> {
   return Promise.all([
     database.singleRecordAction({
       action: 'findOne',
