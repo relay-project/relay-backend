@@ -9,7 +9,7 @@ import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
 import * as service from './service';
 
-interface FindUsersPayload {
+interface GetChatMessagesPayload {
   chatId: number;
 }
 
@@ -27,7 +27,7 @@ export async function handler({
     const {
       error: validationError,
       value,
-    }: ValidationResult<FindUsersPayload> = getChatMessagesSchema.validate(
+    }: ValidationResult<GetChatMessagesPayload> = getChatMessagesSchema.validate(
       payload,
     );
     if (validationError) {

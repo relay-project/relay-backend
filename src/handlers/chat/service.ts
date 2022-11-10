@@ -24,7 +24,35 @@ export async function checkChatAccess(
   return !!userAccess;
 }
 
-export async function createChat(userId: number, invited: number[]): Promise<void[]> {
+export async function createChat(
+  userId: number,
+  invited: number[],
+): Promise<{ chatId: number, isNew: boolean }> {
+  const isPrivate = invited.length === 1;
+  if (isPrivate) {
+    const [existingChat = null] = await database.Instance.query<{ id: number }>(
+      `SELECT c.id FROM user_chats uc
+        LEFT JOIN chats c ON c.id = uc."chatId"
+        WHERE (uc."userId" = :userId OR uc."userId" = :otherUserId)
+          AND c.type = '${CHAT_TYPES.private}'
+        GROUP BY c.id HAVING COUNT(uc.*) = 2;
+      `,
+      {
+        replacements: {
+          otherUserId: invited[0],
+          userId,
+        },
+        type: QueryTypes.SELECT,
+      },
+    );
+    if (existingChat) {
+      return {
+        chatId: existingChat.id,
+        isNew: false,
+      };
+    }
+  }
+
   const chatRecord = await database.Instance[TABLES.chats].create({
     createdBy: userId,
     name: '',
@@ -38,7 +66,7 @@ export async function createChat(userId: number, invited: number[]): Promise<voi
     userId,
   });
 
-  return Promise.all(invited.map(async (id: number): Promise<void> => {
+  await Promise.all(invited.map(async (id: number): Promise<void> => {
     const existingUser = await database.singleRecordAction({
       action: 'findOne',
       condition: {
@@ -53,6 +81,10 @@ export async function createChat(userId: number, invited: number[]): Promise<voi
       });
     }
   }));
+  return {
+    chatId: chatRecord.id,
+    isNew: true,
+  };
 }
 
 export async function deleteMessage(
@@ -178,6 +210,29 @@ export async function getChatMessages({
     totalCount: Number(totalCount),
     totalPages: Math.ceil(totalCount / pagination.limit) || 1,
   };
+}
+
+export async function getChat(
+  userId: number,
+  chatId: number,
+): Promise<Result | void> {
+  const [result] = await database.Instance.query<Result>(
+    `SELECT * FROM chats c
+      LEFT JOIN user_chats uc ON uc."chatId" = c.id
+      LEFT JOIN users u ON uc."userId" = u.id
+      WHERE c.id = :chatId;
+    `,
+    {
+      nest: true,
+      raw: true,
+      replacements: {
+        chatId,
+        userId,
+      },
+      type: QueryTypes.SELECT,
+    },
+  );
+  return result;
 }
 
 export async function getChats(
