@@ -43,7 +43,7 @@ export async function handler({
       });
     }
 
-    const chatData = await service.getChat(userId, chatId);
+    const chatData = await service.getChat(chatId);
 
     return response({
       connection,

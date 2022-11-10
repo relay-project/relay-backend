@@ -213,21 +213,27 @@ export async function getChatMessages({
 }
 
 export async function getChat(
-  userId: number,
   chatId: number,
 ): Promise<Result | void> {
   const [result] = await database.Instance.query<Result>(
-    `SELECT * FROM chats c
-      LEFT JOIN user_chats uc ON uc."chatId" = c.id
-      LEFT JOIN users u ON uc."userId" = u.id
-      WHERE c.id = :chatId;
+    `WITH data AS (
+      SELECT
+        uc."chatId",
+        uc."createdAt" as "joinedChat",
+        u."createdAt",
+        u.id,
+        u.login
+      FROM user_chats uc 
+      LEFT JOIN users u ON u.id = uc."userId"
+      WHERE uc."chatId" = :chatId
+    ) SELECT c.*, json_agg(d.*) AS users
+      FROM data d
+      LEFT JOIN chats c ON d."chatId" = c.id
+      GROUP BY c.id;
     `,
     {
-      nest: true,
-      raw: true,
       replacements: {
         chatId,
-        userId,
       },
       type: QueryTypes.SELECT,
     },
