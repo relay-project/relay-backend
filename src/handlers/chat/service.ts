@@ -185,10 +185,10 @@ export async function getChatMessages({
       `SELECT
         m.*,
         u.login,
-        CASE WHEN m."authorId" = :userId THEN true ESLE false END as "isAuthor"
+        (CASE WHEN m."authorId" = :userId THEN true ELSE false END) as "isAuthor"
         FROM messages m LEFT JOIN users u ON m."authorId" = u.id
         WHERE m."chatId" = :chatId
-        ORDER BY id DESC   
+        ORDER BY m.id DESC   
         LIMIT :limit
         OFFSET :offset; 
       `,
