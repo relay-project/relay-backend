@@ -274,6 +274,7 @@ export async function getChats(
       },
     ),
   ]);
+
   return {
     limit,
     currentPage: page,
@@ -288,9 +289,26 @@ export async function saveMessage(
   chatId: number,
   text: string,
 ): Promise<Result> {
-  return database.Instance[TABLES.messages].create({
+  const message = await database.Instance[TABLES.messages].create({
     authorId,
     chatId,
     text,
   });
+  const [result] = await database.Instance.query<Result>(
+    `SELECT m.*, u.login FROM messages m
+      LEFT JOIN users u on m."authorId" = u.id
+      WHERE m.id = :messageId;
+    `,
+    {
+      replacements: {
+        messageId: message.id,
+      },
+      type: QueryTypes.SELECT,
+    },
+  );
+
+  return {
+    ...result,
+    isAuthor: true,
+  };
 }

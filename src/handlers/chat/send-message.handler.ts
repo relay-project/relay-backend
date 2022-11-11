@@ -1,3 +1,4 @@
+import createRoomID, { ROOM_PREFIXES } from '../../utilities/rooms';
 import CustomError from '../../utilities/custom-error';
 import {
   EVENTS,
@@ -44,13 +45,16 @@ export async function handler({
       });
     }
 
-    await service.saveMessage(userId, chatId, text);
-
-    // TODO: notify the room
+    const message = await service.saveMessage(userId, chatId, text);
+    connection.in(createRoomID(ROOM_PREFIXES.chat, chatId)).emit(
+      EVENTS.INCOMING_CHAT_MESSAGE,
+      message,
+    );
 
     return response({
       connection,
       event,
+      payload: message,
     });
   } catch (error) {
     if (error instanceof CustomError) {

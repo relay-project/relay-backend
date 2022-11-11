@@ -41,6 +41,8 @@ export const EVENTS = {
   GET_CHAT: 'get-chat',
   GET_CHAT_MESSAGES: 'get-chat-messages',
   GET_CHATS: 'get-chats',
+  INCOMING_CHAT_MESSAGE: 'incoming-chat-message',
+  LEAVE_ROOM: 'leave-room',
   RECOVERY_FINAL_STAGE: 'recovery-final-stage',
   RECOVERY_INITIAL_STAGE: 'recovery-inital-stage',
   SEND_MESSAGE: 'send-message',

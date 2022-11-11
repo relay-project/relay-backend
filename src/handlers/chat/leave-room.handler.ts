@@ -10,12 +10,12 @@ import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
 import * as service from './service';
 
-interface GetChatPayload {
+interface LeaveRoomPayload {
   chatId: number;
 }
 
 export const authorize = true;
-export const event = EVENTS.GET_CHAT;
+export const event = EVENTS.LEAVE_ROOM;
 
 export async function handler({
   connection,
@@ -26,7 +26,7 @@ export async function handler({
     const {
       error: validationError,
       value,
-    }: ValidationResult<GetChatPayload> = getChatMessagesSchema.validate(
+    }: ValidationResult<LeaveRoomPayload> = getChatMessagesSchema.validate(
       payload,
     );
     if (validationError) {
@@ -44,13 +44,10 @@ export async function handler({
       });
     }
 
-    const chatData = await service.getChat(chatId);
-    connection.join(createRoomID(ROOM_PREFIXES.chat, chatId));
-
+    connection.leave(createRoomID(ROOM_PREFIXES.chat, chatId));
     return response({
       connection,
       event,
-      payload: chatData as object,
     });
   } catch (error) {
     if (error instanceof CustomError) {
