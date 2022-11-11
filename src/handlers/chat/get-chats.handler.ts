@@ -13,12 +13,7 @@ export async function handler({
   userId,
 }: HandlerData): Promise<boolean> {
   try {
-    const chats = await service.getChats(
-      userId,
-      pagination.limit,
-      pagination.offset,
-      pagination.page,
-    );
+    const chats = await service.getChats({ pagination, userId });
     return response({
       connection,
       event,

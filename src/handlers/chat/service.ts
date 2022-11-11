@@ -242,10 +242,13 @@ export async function getChat(
 }
 
 export async function getChats(
-  userId: number,
-  limit: number,
-  offset: number,
-  page: number,
+  {
+    pagination,
+    userId,
+  }: {
+    pagination: Pagination,
+    userId: number,
+  },
 ): Promise<PaginatedResult> {
   const [[{ count: totalCount }], results] = await Promise.all([
     database.Instance.query<CountResult>(
@@ -257,17 +260,42 @@ export async function getChats(
         type: QueryTypes.SELECT,
       },
     ),
+    // TODO: possibly rewrite, optimize ordering
     database.Instance.query<Result>(
-      `SELECT c.* FROM user_chats uc LEFT JOIN chats c ON uc."chatId" = c.id
-        WHERE uc."userId" = :userId
-        ORDER BY id DESC   
-        LIMIT :limit
-        OFFSET :offset; 
+      `SELECT
+        c.*,
+        (SELECT json_agg(message) FROM (
+          SELECT
+            m."authorId",
+            m."createdAt",
+            m.text,
+            u.login AS "authorLogin"
+            FROM messages m
+            LEFT JOIN users u ON u.id = m."authorId"
+            WHERE m."chatId" = c.id
+            ORDER BY m.id DESC
+            LIMIT 1
+          ) message
+        ) AS "latestMessage",
+        (SELECT json_agg(users) FROM (
+          SELECT
+            u.id,
+            u.login
+            FROM user_chats ucc LEFT JOIN users u ON ucc."userId" = u.id
+            WHERE ucc."chatId" = c.id
+          ) users
+        ) AS "users"
+        FROM user_chats uc
+        LEFT JOIN chats c ON uc."chatId" = c.id
+          WHERE uc."userId" = :userId
+          ORDER BY id DESC   
+          LIMIT :limit
+          OFFSET :offset; 
       `,
       {
         replacements: {
-          limit,
-          offset,
+          limit: pagination.limit,
+          offset: pagination.offset,
           userId,
         },
         type: QueryTypes.SELECT,
@@ -276,11 +304,11 @@ export async function getChats(
   ]);
 
   return {
-    limit,
-    currentPage: page,
+    limit: pagination.limit,
+    currentPage: pagination.page,
     results,
     totalCount: Number(totalCount),
-    totalPages: Math.ceil(totalCount / limit) || 1,
+    totalPages: Math.ceil(totalCount / pagination.limit) || 1,
   };
 }
 
