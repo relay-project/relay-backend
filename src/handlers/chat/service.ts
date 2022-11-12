@@ -128,9 +128,7 @@ export async function deleteMessage(
 export async function findUsers(
   search: string,
   userId: number,
-  limit: number,
-  offset: number,
-  page: number,
+  pagination: Pagination,
 ): Promise<PaginatedResult> {
   const [[{ count: totalCount }], results] = await Promise.all([
     database.Instance.query<CountResult>(
@@ -154,8 +152,8 @@ export async function findUsers(
       `,
       {
         replacements: {
-          offset,
-          limit,
+          offset: pagination.offset,
+          limit: pagination.limit,
           search: `%${search}%`,
           userId,
         },
@@ -164,11 +162,11 @@ export async function findUsers(
     ),
   ]);
   return {
-    limit,
-    currentPage: page,
+    limit: pagination.limit,
+    currentPage: pagination.page,
     results,
     totalCount: Number(totalCount),
-    totalPages: Math.ceil(totalCount / limit) || 1,
+    totalPages: Math.ceil(totalCount / pagination.limit) || 1,
   };
 }
 

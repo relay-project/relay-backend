@@ -36,9 +36,7 @@ export async function handler({
     const users = await service.findUsers(
       search,
       userId,
-      pagination.limit,
-      pagination.offset,
-      pagination.page,
+      pagination,
     );
 
     return response({

@@ -108,7 +108,7 @@ class Database {
     return log('database connection closed');
   }
 
-  async registerModels(): Promise<null | void[]> {
+  async registerModels(): Promise<null | void> {
     if (!this.Instance) {
       throw connectionError;
     }
@@ -124,6 +124,7 @@ class Database {
       return null;
     }
 
+    let counter = 0;
     const imports = models.map(
       async (model): Promise<void> => {
         const {
@@ -136,10 +137,11 @@ class Database {
 
         const connectedModel: ModelStatic<Model> = createModel(this.Instance);
         this.Instance[tableName] = connectedModel;
-        return log(`- loaded model ${tableName}`);
+        counter += 1;
       },
     );
-    return Promise.all(imports);
+    await Promise.all(imports);
+    return log(`database models loaded: ${counter}`);
   }
 
   async singleRecordAction({

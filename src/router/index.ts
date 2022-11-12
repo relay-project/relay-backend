@@ -27,14 +27,15 @@ class Router {
     this.handlers = [];
   }
 
-  async loadHandlers(): Promise<(void | void[])[] | void> {
+  async loadHandlers(): Promise<void> {
     const path = `${process.cwd()}/build/handlers`;
     const directories = await readdir(path);
     if (directories.length === 0) {
       return log('handlers not found');
     }
 
-    return Promise.all(directories.map(async (directory: string): Promise<void | void[]> => {
+    let counter = 0;
+    await Promise.all(directories.map(async (directory: string): Promise<void | void[]> => {
       const directoryPath = `${path}/${directory}`;
       const files = await readdir(directoryPath);
       const handlers = files.filter(
@@ -55,7 +56,6 @@ class Router {
         if (!(event && handler)) {
           throw new Error(`Invalid handler [${name} / ${event}] structure!`);
         }
-        log(`- loaded handler: ${event}`);
         this.handlers.push({
           authorize,
           checkAdmin,
@@ -63,8 +63,10 @@ class Router {
           handler,
           paginated,
         });
+        counter += 1;
       }));
     }));
+    return log(`event handlers loaded: ${counter}`);
   }
 
   registerHandlers(connection: Socket): void {
