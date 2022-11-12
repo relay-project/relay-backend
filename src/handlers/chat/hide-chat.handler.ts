@@ -5,18 +5,17 @@ import {
   RESPONSE_MESSAGES,
   RESPONSE_STATUSES,
 } from '../../configuration';
+import { getChatMessagesSchema, type ValidationResult } from './validation';
 import type { HandlerData } from '../../types';
 import response from '../../utilities/response';
-import { sendMessageSchema, type ValidationResult } from './validation';
 import * as service from './service';
 
-interface SendMessagePayload {
+interface HideChatPayload {
   chatId: number;
-  text: string;
 }
 
 export const authorize = true;
-export const event = EVENTS.SEND_MESSAGE;
+export const event = EVENTS.HIDE_CHAT;
 
 export async function handler({
   connection,
@@ -27,7 +26,7 @@ export async function handler({
     const {
       error: validationError,
       value,
-    }: ValidationResult<SendMessagePayload> = sendMessageSchema.validate(
+    }: ValidationResult<HideChatPayload> = getChatMessagesSchema.validate(
       payload,
     );
     if (validationError) {
@@ -36,7 +35,7 @@ export async function handler({
       });
     }
 
-    const { chatId, text } = value;
+    const { chatId } = value;
     const chatAccess = await service.checkChatAccess(chatId, userId);
     if (!chatAccess) {
       throw new CustomError({
@@ -45,19 +44,12 @@ export async function handler({
       });
     }
 
-    const message = await service.saveMessage(userId, chatId, text);
-    connection.in(createRoomID(ROOM_PREFIXES.chat, chatId)).emit(
-      EVENTS.INCOMING_CHAT_MESSAGE,
-      {
-        ...message,
-        isAuthor: false,
-      },
-    );
+    await service.hideChat(chatId, userId);
+    connection.leave(createRoomID(ROOM_PREFIXES.chat, chatId));
 
     return response({
       connection,
       event,
-      payload: message,
     });
   } catch (error) {
     if (error instanceof CustomError) {

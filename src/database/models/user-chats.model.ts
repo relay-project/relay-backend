@@ -13,6 +13,10 @@ export const createModel = (connection: Sequelize): ModelStatic<Model> => {
   const model = connection.define(
     tableName,
     {
+      chatHidden: {
+        defaultValue: false,
+        type: DataTypes.BOOLEAN,
+      },
       chatId: {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',

@@ -21,7 +21,7 @@ export { TABLES } from '../configuration';
 const connectionError = new Error('Database is not connected!');
 
 interface Condition {
-  [key: string]: number | string;
+  [key: string]: any;
 }
 
 export interface CountResult {

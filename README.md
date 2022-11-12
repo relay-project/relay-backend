@@ -29,7 +29,7 @@ Application checks database existence and creates database automatically when it
 All of the database changes should be done using migrations
 1. Update the graphical representation of the database
 2. Generate a new migration file and add all of the necessary changes
-3. Update the model or create model in the [src/database/models](./src/database/models)
+3. Update the model or create model in the [src/database/models](./src/database/models) directory
 4. Run migration process manually or launch the project if migrations are applied automatically
 
 ### Migrations

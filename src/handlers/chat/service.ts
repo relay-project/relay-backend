@@ -17,6 +17,7 @@ export async function checkChatAccess(
     action: 'findOne',
     condition: {
       chatId,
+      chatHidden: false,
       userId,
     },
     table: TABLES.userChats,
@@ -46,6 +47,17 @@ export async function createChat(
       },
     );
     if (existingChat) {
+      // make sure that it's no longer hidden from both users
+      await database.Instance[TABLES.userChats].update(
+        {
+          chatHidden: false,
+        },
+        {
+          where: {
+            chatId: existingChat.id,
+          },
+        },
+      );
       return {
         chatId: existingChat.id,
         isNew: false,
@@ -252,7 +264,8 @@ export async function getChats(
 ): Promise<PaginatedResult> {
   const [[{ count: totalCount }], results] = await Promise.all([
     database.Instance.query<CountResult>(
-      'SELECT COUNT(*) FROM user_chats WHERE "userId" = :userId;',
+      `SELECT COUNT(*) FROM user_chats
+        WHERE "chatHidden" = false AND "userId" = :userId;`,
       {
         replacements: {
           userId,
@@ -287,8 +300,8 @@ export async function getChats(
         ) AS "users"
         FROM user_chats uc
         LEFT JOIN chats c ON uc."chatId" = c.id
-          WHERE uc."userId" = :userId
-          ORDER BY id DESC   
+          WHERE uc."chatHidden" = false AND uc."userId" = :userId
+          ORDER BY c.id DESC
           LIMIT :limit
           OFFSET :offset; 
       `,
@@ -310,6 +323,23 @@ export async function getChats(
     totalCount: Number(totalCount),
     totalPages: Math.ceil(totalCount / pagination.limit) || 1,
   };
+}
+
+export async function hideChat(
+  chatId: number,
+  userId: number,
+): Promise<void> {
+  return database.Instance[TABLES.userChats].update(
+    {
+      chatHidden: true,
+    },
+    {
+      where: {
+        chatId,
+        userId,
+      },
+    },
+  );
 }
 
 export async function saveMessage(
