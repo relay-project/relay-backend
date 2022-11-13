@@ -10,6 +10,9 @@ export const createChatSchema = joi.object({
 });
 
 export const deleteMessageSchema = joi.object({
+  chatId: joi
+    .number()
+    .required(),
   messageId: joi
     .number()
     .required(),

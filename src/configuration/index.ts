@@ -46,6 +46,8 @@ export const EVENTS = {
   LEAVE_ROOM: 'leave-room',
   RECOVERY_FINAL_STAGE: 'recovery-final-stage',
   RECOVERY_INITIAL_STAGE: 'recovery-inital-stage',
+  ROOM_DELETE_MESSAGE: 'room-delete-message',
+  ROOM_UPDATE_MESSAGE: 'room-update-message',
   SEND_MESSAGE: 'send-message',
   SIGN_IN: 'sign-in',
   SIGN_UP: 'sign-up',

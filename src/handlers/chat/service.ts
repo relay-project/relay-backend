@@ -144,7 +144,7 @@ export async function findUsers(
       },
     ),
     database.Instance.query<Result>(
-      `SELECT "createdAt", id, login FROM users
+      `SELECT id, login FROM users
         WHERE id <> :userId AND login ILIKE :search
         ORDER BY id DESC   
         LIMIT :limit

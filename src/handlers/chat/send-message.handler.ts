@@ -46,7 +46,7 @@ export async function handler({
     }
 
     const message = await service.saveMessage(userId, chatId, text);
-    connection.in(createRoomID(ROOM_PREFIXES.chat, chatId)).emit(
+    connection.to(createRoomID(ROOM_PREFIXES.chat, chatId)).emit(
       EVENTS.INCOMING_CHAT_MESSAGE,
       {
         ...message,

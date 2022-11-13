@@ -1,3 +1,4 @@
+import createRoomID, { ROOM_PREFIXES } from '../../utilities/rooms';
 import CustomError from '../../utilities/custom-error';
 import { deleteMessageSchema, type ValidationResult } from './validation';
 import {
@@ -10,6 +11,7 @@ import response from '../../utilities/response';
 import * as service from './service';
 
 interface DeleteMessagePayload {
+  chatId: number;
   messageId: number;
 }
 
@@ -34,7 +36,7 @@ export async function handler({
       });
     }
 
-    const { messageId } = value;
+    const { chatId, messageId } = value;
     const success = await service.deleteMessage(messageId, userId);
     if (!success) {
       throw new CustomError({
@@ -43,7 +45,13 @@ export async function handler({
       });
     }
 
-    // TODO: notify the room
+    connection.to(createRoomID(ROOM_PREFIXES.chat, chatId)).emit(
+      EVENTS.ROOM_DELETE_MESSAGE,
+      {
+        chatId,
+        messageId,
+      },
+    );
 
     return response({
       connection,
