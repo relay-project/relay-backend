@@ -45,7 +45,7 @@ export async function handler({
       });
     }
 
-    const message = await service.saveMessage(userId, chatId, text);
+    const { message } = await service.saveMessage(userId, chatId, text);
     connection.to(createRoomID(ROOM_PREFIXES.chat, chatId)).emit(
       EVENTS.INCOMING_CHAT_MESSAGE,
       {
@@ -53,6 +53,9 @@ export async function handler({
         isAuthor: false,
       },
     );
+
+    // TODO: send message & notification to the Chats page
+    // TODO: notify users who had this chat hidden
 
     return response({
       connection,

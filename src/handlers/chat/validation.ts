@@ -3,6 +3,9 @@ import joi from 'joi';
 export { type ValidationResult } from 'joi';
 
 export const createChatSchema = joi.object({
+  chatName: joi
+    .string()
+    .allow('', null),
   invited: joi
     .array()
     .items(joi.number())

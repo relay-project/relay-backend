@@ -28,6 +28,7 @@ export async function checkChatAccess(
 export async function createChat(
   userId: number,
   invited: number[],
+  chatName = '',
 ): Promise<{ chatId: number, isNew: boolean }> {
   const isPrivate = invited.length === 1;
   if (isPrivate) {
@@ -67,7 +68,9 @@ export async function createChat(
 
   const chatRecord = await database.Instance[TABLES.chats].create({
     createdBy: userId,
-    name: '',
+    name: invited.length > 1
+      ? chatName
+      : '',
     type: invited.length > 1
       ? CHAT_TYPES.group
       : CHAT_TYPES.private,
@@ -344,27 +347,65 @@ export async function saveMessage(
   authorId: number,
   chatId: number,
   text: string,
-): Promise<Result> {
-  const message = await database.Instance[TABLES.messages].create({
-    authorId,
-    chatId,
-    text,
-  });
-  const [result] = await database.Instance.query<Result>(
-    `SELECT m.*, u.login FROM messages m
-      LEFT JOIN users u on m."authorId" = u.id
-      WHERE m.id = :messageId;
-    `,
-    {
-      replacements: {
-        messageId: message.id,
+): Promise<{ hiddenChats: number[], message: Result }> {
+  const transaction = await database.createTransaction();
+  try {
+    const message = await database.Instance[TABLES.messages].create(
+      {
+        authorId,
+        chatId,
+        text,
       },
-      type: QueryTypes.SELECT,
-    },
-  );
+      {
+        transaction,
+      },
+    );
+    const [[result], hiddenChats] = await Promise.all([
+      database.Instance.query<Result>(
+        `SELECT m.*, u.login FROM messages m
+          LEFT JOIN users u on m."authorId" = u.id
+          WHERE m.id = :messageId;
+        `,
+        {
+          replacements: {
+            messageId: message.id,
+          },
+          transaction,
+          type: QueryTypes.SELECT,
+        },
+      ),
+      database.Instance[TABLES.userChats].findAll({
+        transaction,
+        where: {
+          chatHidden: true,
+          chatId,
+        },
+      }),
+    ]);
+    if (hiddenChats.length > 0) {
+      await database.Instance[TABLES.userChats].update(
+        {
+          chatHidden: false,
+        },
+        {
+          transaction,
+          where: {
+            chatId,
+          },
+        },
+      );
+    }
+    await transaction.commit();
 
-  return {
-    ...result,
-    isAuthor: true,
-  };
+    return {
+      hiddenChats: hiddenChats.map((chat: Result): number => chat.userId),
+      message: {
+        ...result,
+        isAuthor: true,
+      },
+    };
+  } catch (transactionError) {
+    transaction.rollback();
+    throw transactionError;
+  }
 }

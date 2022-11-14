@@ -81,6 +81,7 @@ export const RESPONSE_MESSAGES = {
   invalidChatId: 'INVALID_CHAT_ID',
   invalidMessageId: 'INVALID_MESSAGE_ID',
   loginAlreadyInUse: 'LOGIN_ALREADY_IN_USE',
+  missingData: 'MISSING_DATA',
   missingToken: 'MISSING_TOKEN',
   ok: 'OK',
   oldPasswordIsInvalid: 'OLD_PASSWORD_IS_INVALID',

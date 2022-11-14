@@ -10,6 +10,7 @@ import response from '../../utilities/response';
 import * as service from './service';
 
 interface CreateChatPayload {
+  chatName?: string;
   invited: number[];
 }
 
@@ -34,7 +35,7 @@ export async function handler({
       });
     }
 
-    const { invited } = value;
+    const { chatName = '', invited } = value;
     const filtered = invited.filter((id: number): boolean => id !== userId);
     if (filtered.length === 0) {
       throw new CustomError({
@@ -42,8 +43,14 @@ export async function handler({
         status: RESPONSE_STATUSES.badRequest,
       });
     }
+    if (filtered.length > 2 && !chatName) {
+      throw new CustomError({
+        info: RESPONSE_MESSAGES.missingData,
+        status: RESPONSE_STATUSES.badRequest,
+      });
+    }
 
-    const { chatId, isNew } = await service.createChat(userId, invited);
+    const { chatId, isNew } = await service.createChat(userId, filtered, chatName);
     if (isNew) {
       // TODO: notify users
     }
