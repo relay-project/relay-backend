@@ -14,8 +14,8 @@ export async function handler({
   try {
     await Promise.all([
       deleteAccount(userId),
-      redis.deleteValue(redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userId)),
-      redis.deleteValue(redis.keyFormatter(redis.REDIS_PREFIXES.secretHash, userId)),
+      redis.deleteValue(redis.keyFormatter(redis.PREFIXES.passwordHash, userId)),
+      redis.deleteValue(redis.keyFormatter(redis.PREFIXES.secretHash, userId)),
     ]);
 
     return response({

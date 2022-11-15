@@ -28,8 +28,8 @@ export async function handler({
     const newSecretHash = await service.createHash(`${secretRecord.userId}-${Date.now()}`);
     await Promise.all([
       service.updateSecret(userId, newSecretHash),
-      redis.deleteValue(redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userId)),
-      redis.deleteValue(redis.keyFormatter(redis.REDIS_PREFIXES.secretHash, userId)),
+      redis.deleteValue(redis.keyFormatter(redis.PREFIXES.passwordHash, userId)),
+      redis.deleteValue(redis.keyFormatter(redis.PREFIXES.secretHash, userId)),
     ]);
 
     return response({

@@ -78,11 +78,11 @@ export async function handler({
         userRecord.id,
       ),
       redis.setValue(
-        redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userRecord.id),
+        redis.keyFormatter(redis.PREFIXES.passwordHash, userRecord.id),
         passwordRecord.hash,
       ),
       redis.setValue(
-        redis.keyFormatter(redis.REDIS_PREFIXES.secretHash, userRecord.id),
+        redis.keyFormatter(redis.PREFIXES.secretHash, userRecord.id),
         secretRecord.secret,
       ),
     ] as Promise<string | void>[];

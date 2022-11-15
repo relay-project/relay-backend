@@ -22,7 +22,7 @@ class RedisClient {
 
   keyFormatter: (prefix: string, value: number | string) => string;
 
-  REDIS_PREFIXES = {
+  PREFIXES = {
     passwordHash: 'password-hash',
     secretHash: 'secret-hash',
   };
@@ -62,6 +62,13 @@ class RedisClient {
 
     await this.Client.quit();
     return log('redis connection closed');
+  }
+
+  async expire(key: string, expires = this.DEFAULT_EXPIRATION): Promise<boolean> {
+    if (!(this.Client && this.Client.isOpen)) {
+      throw CONNECTION_ERROR;
+    }
+    return this.Client.expire(key, expires);
   }
 
   async getValue<T>(key: string): Promise<null | T> {

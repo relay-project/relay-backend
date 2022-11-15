@@ -65,7 +65,7 @@ export async function handler({
         service.createNewToken(userId, newPasswordHash, secretRecord.secret),
         service.updatePassword(userId, newPasswordHash, transaction),
         redis.setValue(
-          redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userId),
+          redis.keyFormatter(redis.PREFIXES.passwordHash, userId),
           newPasswordHash,
         ),
       ]);

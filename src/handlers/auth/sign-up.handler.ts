@@ -91,11 +91,11 @@ export async function handler({
         ),
         transaction.commit(),
         redis.setValue(
-          redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userRecord.id),
+          redis.keyFormatter(redis.PREFIXES.passwordHash, userRecord.id),
           passwordHash,
         ),
         redis.setValue(
-          redis.keyFormatter(redis.REDIS_PREFIXES.secretHash, userRecord.id),
+          redis.keyFormatter(redis.PREFIXES.secretHash, userRecord.id),
           secretHash,
         ),
       ]);

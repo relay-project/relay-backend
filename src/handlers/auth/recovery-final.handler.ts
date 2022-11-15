@@ -81,8 +81,8 @@ export async function handler({
           userId,
           transaction,
         ),
-        redis.deleteValue(redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userId)),
-        redis.deleteValue(redis.keyFormatter(redis.REDIS_PREFIXES.secretHash, userId)),
+        redis.deleteValue(redis.keyFormatter(redis.PREFIXES.passwordHash, userId)),
+        redis.deleteValue(redis.keyFormatter(redis.PREFIXES.secretHash, userId)),
       ]);
       await transaction.commit();
 
