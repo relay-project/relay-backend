@@ -9,10 +9,13 @@ import {
 import type { HandlerData } from '../../types';
 import redis from '../../utilities/redis';
 import response from '../../utilities/response';
+import type { Result } from '../../database';
 import * as service from './service';
 import { signInSchema, type ValidationResult } from './validation';
 
 interface SignInPayload {
+  deviceId: string;
+  deviceName: string;
   login: string;
   password: string;
 }
@@ -40,6 +43,8 @@ export async function handler({
     }
 
     const {
+      deviceId,
+      deviceName,
       login,
       password,
     } = value;
@@ -54,7 +59,8 @@ export async function handler({
       });
     }
 
-    const [passwordRecord, secretRecord] = await Promise.all([
+    const [deviceRecord, passwordRecord, secretRecord] = await Promise.all([
+      service.getDevice(userRecord.id, deviceId),
       service.getPassword(userRecord.id),
       service.getSecret(userRecord.id),
     ]);
@@ -71,11 +77,12 @@ export async function handler({
       throw unauthorizedError;
     }
 
-    const promises = [
+    const promises: Promise<Result | string | void>[] = [
       service.createNewToken(
         passwordRecord.hash,
         secretRecord.secret,
         userRecord.id,
+        deviceId,
       ),
       redis.setValue(
         redis.keyFormatter(redis.PREFIXES.passwordHash, userRecord.id),
@@ -85,9 +92,12 @@ export async function handler({
         redis.keyFormatter(redis.PREFIXES.secretHash, userRecord.id),
         secretRecord.secret,
       ),
-    ] as Promise<string | void>[];
+    ];
     if (userRecord.failedLoginAttempts > 0) {
       promises.push(service.setFailedAttempts(userRecord.id, 0));
+    }
+    if (!deviceRecord) {
+      promises.push(service.createDevice(deviceId, deviceName, userRecord.id));
     }
 
     const [token] = await Promise.all(promises);

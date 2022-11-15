@@ -1,8 +1,12 @@
 import { compare, hash } from 'scryptwrap';
 import type { Transaction } from 'sequelize';
 
-import { composeSecret, createToken } from '../../utilities/jwt';
-import database, { Result, TABLES } from '../../database';
+import {
+  composePayload,
+  composeSecret,
+  createToken,
+} from '../../utilities/jwt';
+import database, { type Result, TABLES } from '../../database';
 
 export async function compareHashes(
   plaintext: string,
@@ -19,9 +23,10 @@ export async function createNewToken(
   userId: number,
   passwordHash: string,
   secretHash: string,
+  deviceId: string,
 ): Promise<string> {
   return createToken(
-    userId,
+    composePayload(deviceId, userId),
     composeSecret(passwordHash, secretHash),
   );
 }
@@ -30,8 +35,8 @@ export async function createTransaction(): Promise<Transaction> {
   return database.createTransaction();
 }
 
-export async function deleteAccount(userId: number): Promise<Result | void> {
-  return database.singleRecordAction({
+export async function deleteAccount(userId: number): Promise<void> {
+  return database.singleRecordAction<void>({
     action: 'destroy',
     condition: {
       id: userId,
@@ -43,9 +48,9 @@ export async function deleteAccount(userId: number): Promise<Result | void> {
 export async function getPasswordAndSecret(
   userId: number,
   transaction: Transaction,
-): Promise<(Result | void)[]> {
+): Promise<Result[]> {
   return Promise.all([
-    database.singleRecordAction({
+    database.singleRecordAction<Result>({
       action: 'findOne',
       condition: {
         userId,
@@ -53,7 +58,7 @@ export async function getPasswordAndSecret(
       table: TABLES.passwords,
       transaction,
     }),
-    database.singleRecordAction({
+    database.singleRecordAction<Result>({
       action: 'findOne',
       condition: {
         userId,

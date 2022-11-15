@@ -1,8 +1,12 @@
 import { compare, hash } from 'scryptwrap';
 import type { Transaction } from 'sequelize';
 
-import { composeSecret, createToken } from '../../utilities/jwt';
-import database, { TABLES } from '../../database';
+import {
+  composePayload,
+  composeSecret,
+  createToken,
+} from '../../utilities/jwt';
+import database, { type Result, TABLES } from '../../database';
 
 export async function compareHashes(
   plaintext: string,
@@ -15,17 +19,20 @@ export async function createDevice(
   deviceId: string,
   deviceName: string,
   userId: number,
-  transaction: Transaction,
-): Promise<any> {
+  transaction?: Transaction,
+): Promise<Result> {
+  const options = transaction
+    ? {
+      transaction,
+    }
+    : {};
   return database.Instance[TABLES.devices].create(
     {
       deviceId,
       deviceName,
       userId,
     },
-    {
-      transaction,
-    },
+    options,
   );
 }
 
@@ -37,9 +44,10 @@ export async function createNewToken(
   passwordHash: string,
   secretHash: string,
   userId: number,
+  deviceId: string,
 ): Promise<string> {
   return createToken(
-    userId,
+    composePayload(deviceId, userId),
     composeSecret(passwordHash, secretHash),
   );
 }
@@ -52,7 +60,7 @@ export async function createPassword(
   hashed: string,
   userId: number,
   transaction: Transaction,
-): Promise<any> {
+): Promise<Result> {
   return database.Instance[TABLES.passwords].create(
     {
       hash: hashed,
@@ -68,7 +76,7 @@ export async function createSecret(
   hashedSecret: string,
   userId: number,
   transaction: Transaction,
-): Promise<any> {
+): Promise<Result> {
   return database.Instance[TABLES.secrets].create(
     {
       secret: hashedSecret,
@@ -85,7 +93,7 @@ export async function createUser(
   recoveryAnswerHash: string,
   recoveryQuestion: string,
   transaction: Transaction,
-): Promise<any> {
+): Promise<Result> {
   return database.Instance[TABLES.users].create(
     {
       login: login.toLowerCase(),
@@ -98,8 +106,19 @@ export async function createUser(
   );
 }
 
-export async function getPassword(userId: number): Promise<any> {
-  return database.singleRecordAction({
+export async function getDevice(userId: number, deviceId: string): Promise<Result> {
+  return database.singleRecordAction<Result>({
+    action: 'findOne',
+    condition: {
+      deviceId,
+      userId,
+    },
+    table: TABLES.devices,
+  });
+}
+
+export async function getPassword(userId: number): Promise<Result> {
+  return database.singleRecordAction<Result>({
     action: 'findOne',
     condition: {
       userId,
@@ -108,8 +127,8 @@ export async function getPassword(userId: number): Promise<any> {
   });
 }
 
-export async function getSecret(userId: number): Promise<any> {
-  return database.singleRecordAction({
+export async function getSecret(userId: number): Promise<Result> {
+  return database.singleRecordAction<Result>({
     action: 'findOne',
     condition: {
       userId,
@@ -121,7 +140,7 @@ export async function getSecret(userId: number): Promise<any> {
 export async function getUser(
   identifier: number | string,
   useId = false,
-): Promise<any> {
+): Promise<Result> {
   const condition = useId
     ? {
       id: identifier,
@@ -129,7 +148,7 @@ export async function getUser(
     : {
       login: identifier,
     };
-  return database.singleRecordAction({
+  return database.singleRecordAction<Result>({
     action: 'findOne',
     condition,
     table: TABLES.users,

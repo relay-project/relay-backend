@@ -13,7 +13,7 @@ export async function checkChatAccess(
   chatId: number,
   userId: number,
 ): Promise<boolean> {
-  const userAccess = await database.singleRecordAction({
+  const userAccess = await database.singleRecordAction<Result>({
     action: 'findOne',
     condition: {
       chatId,
@@ -82,7 +82,7 @@ export async function createChat(
   });
 
   await Promise.all(invited.map(async (id: number): Promise<void> => {
-    const existingUser = await database.singleRecordAction({
+    const existingUser = await database.singleRecordAction<Result>({
       action: 'findOne',
       condition: {
         id,
@@ -225,9 +225,7 @@ export async function getChatMessages({
   };
 }
 
-export async function getChat(
-  chatId: number,
-): Promise<Result | void> {
+export async function getChat(chatId: number): Promise<Result> {
   const [result] = await database.Instance.query<Result>(
     `WITH data AS (
       SELECT

@@ -36,6 +36,14 @@ export const recoveryFinalSchema = joi.object({
 });
 
 export const signInSchema = loginSchema.keys({
+  deviceId: joi
+    .string()
+    .alphanum()
+    .required(),
+  deviceName: joi
+    .string()
+    .alphanum()
+    .required(),
   password: joi
     .string()
     .required(),

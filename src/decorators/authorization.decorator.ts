@@ -5,7 +5,7 @@ import {
 } from '../utilities/jwt';
 import createRoomID, { ROOM_PREFIXES } from '../utilities/rooms';
 import CustomError from '../utilities/custom-error';
-import database, { TABLES } from '../database';
+import database, { type Result, TABLES } from '../database';
 import type { HandlerData, Pagination } from '../types';
 import redis from '../utilities/redis';
 import response from '../utilities/response';
@@ -39,7 +39,7 @@ export default async function authorizationDecorator({
       });
     }
 
-    const userId = decodeToken(token);
+    const { deviceId, userId } = decodeToken(token);
 
     let [passwordHash, secretHash] = await Promise.all([
       redis.getValue<string>(redis.keyFormatter(redis.PREFIXES.passwordHash, userId)),
@@ -47,14 +47,14 @@ export default async function authorizationDecorator({
     ]);
     if (!(passwordHash && secretHash)) {
       const [passwordRecord, secretRecord] = await Promise.all([
-        database.singleRecordAction({
+        database.singleRecordAction<Result>({
           action: 'findOne',
           condition: {
             userId,
           },
           table: TABLES.passwords,
         }),
-        database.singleRecordAction({
+        database.singleRecordAction<Result>({
           action: 'findOne',
           condition: {
             userId,
@@ -120,6 +120,7 @@ export default async function authorizationDecorator({
 
     return callback({
       connection,
+      deviceId,
       payload: payloadWithoutToken,
       pagination,
       userId,

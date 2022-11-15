@@ -88,6 +88,7 @@ export async function handler({
           passwordHash,
           secretHash,
           userRecord.id,
+          deviceId,
         ),
         transaction.commit(),
         redis.setValue(

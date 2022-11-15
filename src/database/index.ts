@@ -144,12 +144,12 @@ class Database {
     return log(`database models loaded: ${counter}`);
   }
 
-  async singleRecordAction({
+  async singleRecordAction<T = null>({
     action,
     condition,
     table,
     transaction = null,
-  }: SingleRecordOptions): Promise<Result | void> {
+  }: SingleRecordOptions): Promise<T> {
     if (!this.Instance) {
       throw connectionError;
     }
@@ -159,7 +159,7 @@ class Database {
     if (transaction) {
       parameters.transaction = transaction;
     }
-    return this.Instance[table][action](parameters);
+    return this.Instance[table][action](parameters) as T;
   }
 }
 

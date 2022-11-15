@@ -15,6 +15,7 @@ export interface Payload {
 
 export interface HandlerData {
   connection: Socket;
+  deviceId?: string;
   pagination?: Pagination;
   payload?: Payload;
   userId?: number;

@@ -20,6 +20,7 @@ export const event = EVENTS.UPDATE_PASSWORD;
 
 export async function handler({
   connection,
+  deviceId,
   payload,
   userId,
 }: HandlerData): Promise<boolean> {
@@ -62,7 +63,12 @@ export async function handler({
 
       const newPasswordHash = await service.createHash(newPassword);
       const [token] = await Promise.all([
-        service.createNewToken(userId, newPasswordHash, secretRecord.secret),
+        service.createNewToken(
+          userId,
+          newPasswordHash,
+          secretRecord.secret,
+          deviceId,
+        ),
         service.updatePassword(userId, newPasswordHash, transaction),
         redis.setValue(
           redis.keyFormatter(redis.PREFIXES.passwordHash, userId),
