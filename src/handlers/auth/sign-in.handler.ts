@@ -7,6 +7,7 @@ import {
   RESPONSE_STATUSES,
 } from '../../configuration';
 import type { HandlerData } from '../../types';
+import redis from '../../utilities/redis';
 import response from '../../utilities/response';
 import * as service from './service';
 import { signInSchema, type ValidationResult } from './validation';
@@ -70,11 +71,21 @@ export async function handler({
       throw unauthorizedError;
     }
 
-    const promises = [service.createNewToken(
-      passwordRecord.hash,
-      secretRecord.secret,
-      userRecord.id,
-    )] as Promise<string | void>[];
+    const promises = [
+      service.createNewToken(
+        passwordRecord.hash,
+        secretRecord.secret,
+        userRecord.id,
+      ),
+      redis.setValue(
+        redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userRecord.id),
+        passwordRecord.hash,
+      ),
+      redis.setValue(
+        redis.keyFormatter(redis.REDIS_PREFIXES.secretHash, userRecord.id),
+        secretRecord.secret,
+      ),
+    ] as Promise<string | void>[];
     if (userRecord.failedLoginAttempts > 0) {
       promises.push(service.setFailedAttempts(userRecord.id, 0));
     }

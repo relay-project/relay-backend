@@ -6,6 +6,7 @@ import {
 } from '../../configuration';
 import type { HandlerData } from '../../types';
 import { recoveryFinalSchema, type ValidationResult } from './validation';
+import redis from '../../utilities/redis';
 import response from '../../utilities/response';
 import * as service from './service';
 
@@ -71,14 +72,18 @@ export async function handler({
 
     const transaction = await service.createTransaction();
     try {
-      await service.recoveryFinalUpdateData(
-        newPasswordHash,
-        newSecretHash,
-        passwordRecord.id,
-        secretRecord.id,
-        userId,
-        transaction,
-      );
+      await Promise.all([
+        service.recoveryFinalUpdateData(
+          newPasswordHash,
+          newSecretHash,
+          passwordRecord.id,
+          secretRecord.id,
+          userId,
+          transaction,
+        ),
+        redis.deleteValue(redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userId)),
+        redis.deleteValue(redis.keyFormatter(redis.REDIS_PREFIXES.secretHash, userId)),
+      ]);
       await transaction.commit();
 
       return response({

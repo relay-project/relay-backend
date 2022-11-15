@@ -5,6 +5,7 @@ import {
   RESPONSE_STATUSES,
 } from '../../configuration';
 import type { HandlerData } from '../../types';
+import redis from '../../utilities/redis';
 import response from '../../utilities/response';
 import * as service from './service';
 import { updatePasswordSchema, type ValidationResult } from './validation';
@@ -63,6 +64,10 @@ export async function handler({
       const [token] = await Promise.all([
         service.createNewToken(userId, newPasswordHash, secretRecord.secret),
         service.updatePassword(userId, newPasswordHash, transaction),
+        redis.setValue(
+          redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userId),
+          newPasswordHash,
+        ),
       ]);
 
       await transaction.commit();

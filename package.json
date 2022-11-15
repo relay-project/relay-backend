@@ -31,6 +31,7 @@
     "jsonwebtoken": "^8.5.1",
     "pg": "^8.8.0",
     "pg-hstore": "^2.3.4",
+    "redis": "^4.5.0",
     "scryptwrap": "^2.0.0",
     "sequelize": "^6.25.3",
     "sequelize-cli": "^6.5.1",

@@ -5,6 +5,7 @@ import {
   RESPONSE_STATUSES,
 } from '../../configuration';
 import type { HandlerData } from '../../types';
+import redis from '../../utilities/redis';
 import response from '../../utilities/response';
 import * as service from './service';
 
@@ -25,7 +26,11 @@ export async function handler({
     }
 
     const newSecretHash = await service.createHash(`${secretRecord.userId}-${Date.now()}`);
-    await service.updateSecret(userId, newSecretHash);
+    await Promise.all([
+      service.updateSecret(userId, newSecretHash),
+      redis.deleteValue(redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userId)),
+      redis.deleteValue(redis.keyFormatter(redis.REDIS_PREFIXES.secretHash, userId)),
+    ]);
 
     return response({
       connection,

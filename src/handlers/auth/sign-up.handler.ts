@@ -6,6 +6,7 @@ import {
   RESPONSE_STATUSES,
 } from '../../configuration';
 import type { HandlerData } from '../../types';
+import redis from '../../utilities/redis';
 import response from '../../utilities/response';
 import * as service from './service';
 import { signUpSchema, type ValidationResult } from './validation';
@@ -89,6 +90,14 @@ export async function handler({
           userRecord.id,
         ),
         transaction.commit(),
+        redis.setValue(
+          redis.keyFormatter(redis.REDIS_PREFIXES.passwordHash, userRecord.id),
+          passwordHash,
+        ),
+        redis.setValue(
+          redis.keyFormatter(redis.REDIS_PREFIXES.secretHash, userRecord.id),
+          secretHash,
+        ),
       ]);
       connection.join(createRoomID(ROOM_PREFIXES.user, userRecord.id));
 

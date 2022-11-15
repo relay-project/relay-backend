@@ -73,6 +73,12 @@ export const MIN_PASSWORD_LENGTH = 8;
 
 export const PORT = Number(ev.PORT) || 5000;
 
+export const REDIS = {
+  host: process.env.REDIS_HOST || 'localhost',
+  password: process.env.REDIS_PASSWORD,
+  port: process.env.REDIS_PORT || 6379,
+};
+
 export const RESPONSE_MESSAGES = {
   accessDenied: 'ACCESS_DENIED',
   accountSuspended: 'ACCOUNT_SUSPENDED',

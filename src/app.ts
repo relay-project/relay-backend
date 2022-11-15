@@ -9,6 +9,7 @@ import {
 import database from './database';
 import gracefulShutdown from './utilities/graceful-shutdown';
 import log from './utilities/logger';
+import redis from './utilities/redis';
 import router from './router';
 
 export default async function createServer(): Promise<void> {
@@ -16,6 +17,8 @@ export default async function createServer(): Promise<void> {
   await database.registerModels();
 
   await router.loadHandlers();
+
+  await redis.connect();
 
   const server = new IOServer({
     cors: {
@@ -42,11 +45,11 @@ export default async function createServer(): Promise<void> {
 
   process.on(
     'SIGINT',
-    (signal): Promise<void> => gracefulShutdown(signal, server, database),
+    (signal): Promise<void> => gracefulShutdown(signal, server, database, redis),
   );
   process.on(
     'SIGTERM',
-    (signal): Promise<void> => gracefulShutdown(signal, server, database),
+    (signal): Promise<void> => gracefulShutdown(signal, server, database, redis),
   );
 
   log(`${APPLICATION_NAME} launched on port ${PORT}`);
