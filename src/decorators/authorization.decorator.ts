@@ -125,6 +125,23 @@ export default async function authorizationDecorator({
       connection.join(userRoom);
     }
 
+    // notify users about the connection if necessary
+    const userDeviceKey = redis.keyFormatter(
+      redis.PREFIXES.userDevice,
+      `${userId}-${deviceId}`,
+    );
+    const registeredDevice = await redis.getValue(userDeviceKey);
+    if (!registeredDevice) {
+      await redis.setValue(userDeviceKey, connection.id);
+
+      // TODO: get target users
+      // get all of their connection IDs from Redis
+      // send notifications to these connection IDs
+      // move this to a separate file
+    } else {
+      await redis.expire(userDeviceKey);
+    }
+
     return callback({
       connection,
       deviceId,

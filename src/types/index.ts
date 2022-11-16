@@ -1,5 +1,9 @@
 import type { Socket } from 'socket.io';
 
+export interface Connection extends Socket {
+  isFirstRequest: boolean;
+}
+
 export interface Pagination {
   limit: number;
   page: number;

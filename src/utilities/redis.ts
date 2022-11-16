@@ -25,6 +25,7 @@ class RedisClient {
   PREFIXES = {
     passwordHash: 'password-hash',
     secretHash: 'secret-hash',
+    userDevice: 'user-device',
   };
 
   constructor() {
