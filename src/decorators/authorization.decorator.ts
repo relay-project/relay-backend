@@ -5,7 +5,12 @@ import {
 } from '../utilities/jwt';
 import createRoomID, { ROOM_PREFIXES } from '../utilities/rooms';
 import CustomError from '../utilities/custom-error';
-import database, { type Result, TABLES } from '../database';
+import database, {
+  type Password,
+  type Secret,
+  type User,
+  TABLES,
+} from '../database';
 import type { HandlerData, Pagination } from '../types';
 import redis from '../utilities/redis';
 import response from '../utilities/response';
@@ -47,14 +52,14 @@ export default async function authorizationDecorator({
     ]);
     if (!(passwordHash && secretHash)) {
       const [passwordRecord, secretRecord] = await Promise.all([
-        database.singleRecordAction<Result>({
+        database.singleRecordAction<Password>({
           action: 'findOne',
           condition: {
             userId,
           },
           table: TABLES.passwords,
         }),
-        database.singleRecordAction<Result>({
+        database.singleRecordAction<Secret>({
           action: 'findOne',
           condition: {
             userId,
@@ -94,10 +99,12 @@ export default async function authorizationDecorator({
     }
 
     if (checkAdmin) {
-      const userRecord = await database.Instance[TABLES.users].findOne({
-        where: {
+      const userRecord = await database.singleRecordAction<User>({
+        action: 'findOne',
+        condition: {
           id: userId,
         },
+        table: TABLES.users,
       });
       if (!(userRecord && userRecord.role === ROLES.admin)) {
         throw new CustomError({

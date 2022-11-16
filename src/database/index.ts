@@ -17,6 +17,7 @@ import log from '../utilities/logger';
 import runMigrations from './run-migrations';
 
 export { TABLES } from '../configuration';
+export * from '../types/database';
 
 const connectionError = new Error('Database is not connected!');
 
@@ -24,28 +25,9 @@ interface Condition {
   [key: string]: any;
 }
 
-export interface CountResult {
-  count: number;
-}
-
-export interface PaginatedResult {
-  currentPage: number;
-  limit: number;
-  results: Result[];
-  totalCount: number;
-  totalPages: number;
-}
-
 interface QueryParameters {
   transaction?: Transaction;
   where: Condition;
-}
-
-export interface Result {
-  [key: string]: any;
-  createdAt: string;
-  id: number;
-  updatedAt: string;
 }
 
 type SingleRecordActions = 'destroy' | 'findOne';

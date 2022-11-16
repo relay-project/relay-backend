@@ -6,7 +6,11 @@ import {
   composeSecret,
   createToken,
 } from '../../utilities/jwt';
-import database, { type Result, TABLES } from '../../database';
+import database, {
+  type Password,
+  type Secret,
+  TABLES,
+} from '../../database';
 
 export async function compareHashes(
   plaintext: string,
@@ -48,9 +52,9 @@ export async function deleteAccount(userId: number): Promise<void> {
 export async function getPasswordAndSecret(
   userId: number,
   transaction: Transaction,
-): Promise<Result[]> {
+): Promise<[Password, Secret]> {
   return Promise.all([
-    database.singleRecordAction<Result>({
+    database.singleRecordAction<Password>({
       action: 'findOne',
       condition: {
         userId,
@@ -58,7 +62,7 @@ export async function getPasswordAndSecret(
       table: TABLES.passwords,
       transaction,
     }),
-    database.singleRecordAction<Result>({
+    database.singleRecordAction<Secret>({
       action: 'findOne',
       condition: {
         userId,

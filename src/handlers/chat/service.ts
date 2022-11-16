@@ -3,8 +3,11 @@ import { QueryTypes } from 'sequelize';
 import { CHAT_TYPES } from '../../configuration';
 import database, {
   type CountResult,
+  type Message,
   type PaginatedResult,
   type Result,
+  type UserChat,
+  type User,
   TABLES,
 } from '../../database';
 import type { Pagination } from '../../types';
@@ -13,7 +16,7 @@ export async function checkChatAccess(
   chatId: number,
   userId: number,
 ): Promise<boolean> {
-  const userAccess = await database.singleRecordAction<Result>({
+  const userAccess = await database.singleRecordAction<UserChat>({
     action: 'findOne',
     condition: {
       chatId,
@@ -82,7 +85,7 @@ export async function createChat(
   });
 
   await Promise.all(invited.map(async (id: number): Promise<void> => {
-    const existingUser = await database.singleRecordAction<Result>({
+    const existingUser = await database.singleRecordAction<User>({
       action: 'findOne',
       condition: {
         id,
@@ -106,7 +109,7 @@ export async function deleteMessage(
   messageId: number,
   authorId: number,
 ): Promise<boolean> {
-  const existingMessage = await database.singleRecordAction({
+  const existingMessage = await database.singleRecordAction<Message>({
     action: 'findOne',
     condition: {
       authorId,
@@ -117,7 +120,7 @@ export async function deleteMessage(
   if (!existingMessage) {
     return false;
   }
-  await database.singleRecordAction({
+  await database.singleRecordAction<void>({
     action: 'destroy',
     condition: {
       authorId,
@@ -396,7 +399,9 @@ export async function saveMessage(
     await transaction.commit();
 
     return {
-      hiddenChats: hiddenChats.map((chat: Result): number => chat.userId),
+      hiddenChats: hiddenChats.map(
+        (chat: UserChat): number => chat.userId,
+      ),
       message: {
         ...result,
         isAuthor: true,

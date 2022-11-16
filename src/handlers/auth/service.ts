@@ -6,7 +6,13 @@ import {
   composeSecret,
   createToken,
 } from '../../utilities/jwt';
-import database, { type Result, TABLES } from '../../database';
+import database, {
+  type Device,
+  type Password,
+  type Secret,
+  type User,
+  TABLES,
+} from '../../database';
 
 export async function compareHashes(
   plaintext: string,
@@ -20,7 +26,7 @@ export async function createDevice(
   deviceName: string,
   userId: number,
   transaction?: Transaction,
-): Promise<Result> {
+): Promise<Device> {
   const options = transaction
     ? {
       transaction,
@@ -60,7 +66,7 @@ export async function createPassword(
   hashed: string,
   userId: number,
   transaction: Transaction,
-): Promise<Result> {
+): Promise<Password> {
   return database.Instance[TABLES.passwords].create(
     {
       hash: hashed,
@@ -76,7 +82,7 @@ export async function createSecret(
   hashedSecret: string,
   userId: number,
   transaction: Transaction,
-): Promise<Result> {
+): Promise<Secret> {
   return database.Instance[TABLES.secrets].create(
     {
       secret: hashedSecret,
@@ -93,7 +99,7 @@ export async function createUser(
   recoveryAnswerHash: string,
   recoveryQuestion: string,
   transaction: Transaction,
-): Promise<Result> {
+): Promise<User> {
   return database.Instance[TABLES.users].create(
     {
       login: login.toLowerCase(),
@@ -106,8 +112,8 @@ export async function createUser(
   );
 }
 
-export async function getDevice(userId: number, deviceId: string): Promise<Result> {
-  return database.singleRecordAction<Result>({
+export async function getDevice(userId: number, deviceId: string): Promise<Device> {
+  return database.singleRecordAction<Device>({
     action: 'findOne',
     condition: {
       deviceId,
@@ -117,8 +123,8 @@ export async function getDevice(userId: number, deviceId: string): Promise<Resul
   });
 }
 
-export async function getPassword(userId: number): Promise<Result> {
-  return database.singleRecordAction<Result>({
+export async function getPassword(userId: number): Promise<Password> {
+  return database.singleRecordAction<Password>({
     action: 'findOne',
     condition: {
       userId,
@@ -127,8 +133,8 @@ export async function getPassword(userId: number): Promise<Result> {
   });
 }
 
-export async function getSecret(userId: number): Promise<Result> {
-  return database.singleRecordAction<Result>({
+export async function getSecret(userId: number): Promise<Secret> {
+  return database.singleRecordAction<Secret>({
     action: 'findOne',
     condition: {
       userId,
@@ -140,7 +146,7 @@ export async function getSecret(userId: number): Promise<Result> {
 export async function getUser(
   identifier: number | string,
   useId = false,
-): Promise<Result> {
+): Promise<User> {
   const condition = useId
     ? {
       id: identifier,
@@ -148,7 +154,7 @@ export async function getUser(
     : {
       login: identifier,
     };
-  return database.singleRecordAction<Result>({
+  return database.singleRecordAction<User>({
     action: 'findOne',
     condition,
     table: TABLES.users,
