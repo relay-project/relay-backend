@@ -4,7 +4,7 @@ import {
   Sequelize,
   type Transaction,
 } from 'sequelize';
-import { readdir } from 'fs/promises';
+import { readdir } from 'node:fs/promises';
 
 import createDatabase from './create-database';
 import {

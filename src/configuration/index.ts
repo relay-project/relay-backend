@@ -53,6 +53,7 @@ export const EVENTS = {
   SIGN_UP: 'sign-up',
   UPDATE_PASSWORD: 'update-password',
   UPDATE_RECOVERY_DATA: 'update-recovery-data',
+  USER_CONNECTED: 'USER_CONNECTED',
 };
 
 export const MAX_DEVICE_ID_LENGTH = 64;
@@ -74,6 +75,7 @@ export const MIN_PASSWORD_LENGTH = 8;
 export const PORT = Number(ev.PORT) || 5000;
 
 export const REDIS = {
+  flushOnLaunch: process.env.REDIS_FLUSH_ON_LAUNCH || 'no',
   host: process.env.REDIS_HOST || 'localhost',
   password: process.env.REDIS_PASSWORD,
   port: process.env.REDIS_PORT || 6379,

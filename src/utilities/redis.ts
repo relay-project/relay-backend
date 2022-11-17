@@ -46,6 +46,9 @@ class RedisClient {
     }
     this.Client = createClient(options);
     await this.Client.connect();
+    if (REDIS.flushOnLaunch === 'yes') {
+      await this.Client.flushAll();
+    }
     return log('redis connected');
   }
 
@@ -70,6 +73,13 @@ class RedisClient {
       throw CONNECTION_ERROR;
     }
     return this.Client.expire(key, expires);
+  }
+
+  async getKeys(pattern: string): Promise<string[]> {
+    if (!(this.Client && this.Client.isOpen)) {
+      throw CONNECTION_ERROR;
+    }
+    return this.Client.keys(pattern);
   }
 
   async getValue<T>(key: string): Promise<null | T> {
