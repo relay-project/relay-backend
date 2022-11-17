@@ -82,7 +82,7 @@ class RedisClient {
     return this.Client.keys(pattern);
   }
 
-  async getValue<T>(key: string): Promise<null | T> {
+  async getValue<T = string>(key: string): Promise<null | T> {
     if (!(this.Client && this.Client.isOpen)) {
       throw CONNECTION_ERROR;
     }

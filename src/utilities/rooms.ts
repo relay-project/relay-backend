@@ -5,7 +5,7 @@ export const ROOM_PREFIXES = {
 
 export default function createRoomID(
   prefix: string,
-  entityId: number,
+  entityId: number | string,
 ): string {
   return `${prefix}-${entityId}`;
 }

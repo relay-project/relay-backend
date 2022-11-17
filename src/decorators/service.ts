@@ -15,7 +15,7 @@ export default async function handleFirstRequest({
   connection,
   deviceId,
   userId,
-}: FirstRequestOptions): Promise<boolean | null | void> {
+}: FirstRequestOptions): Promise<boolean[] | null | void> {
   const userDeviceKey = redis.keyFormatter(
     redis.PREFIXES.userDevice,
     `${userId}-${deviceId}`,
@@ -23,7 +23,10 @@ export default async function handleFirstRequest({
 
   const registeredDevice = await redis.getValue(userDeviceKey);
   if (!registeredDevice) {
-    await redis.setValue(userDeviceKey, connection.id);
+    await Promise.all([
+      redis.setValue(connection.id, userDeviceKey),
+      redis.setValue(userDeviceKey, connection.id),
+    ]);
 
     const targetIds: { userId: number }[] = await database.Instance.query(
       `WITH data AS (
@@ -75,5 +78,8 @@ export default async function handleFirstRequest({
       ),
     );
   }
-  return redis.expire(userDeviceKey);
+  return Promise.all([
+    redis.expire(connection.id),
+    redis.expire(userDeviceKey),
+  ]);
 }

@@ -8,6 +8,7 @@ import {
 } from './configuration';
 import database from './database';
 import gracefulShutdown from './utilities/graceful-shutdown';
+import handleDisconnecting from './utilities/handle-disconnecting';
 import log from './utilities/logger';
 import redis from './utilities/redis';
 import router from './router';
@@ -34,6 +35,10 @@ export default async function createServer(): Promise<void> {
       log(`connected ${connection.id}`);
 
       router.registerHandlers(connection);
+      connection.on(
+        EVENTS.DISCONNECTING,
+        (): Promise<void> => handleDisconnecting(connection),
+      );
       connection.on(
         EVENTS.DISCONNECT,
         (reason: string): void => log(`disconnected ${connection.id} (${reason})`),
