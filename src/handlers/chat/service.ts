@@ -305,7 +305,7 @@ export async function getChats(
           WHERE uc."chatHidden" = false AND uc."userId" = :userId
           ORDER BY c.id DESC
           LIMIT :limit
-          OFFSET :offset; 
+          OFFSET :offset;
       `,
       {
         replacements: {
