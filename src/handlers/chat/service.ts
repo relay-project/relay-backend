@@ -9,8 +9,10 @@ import database, {
   type UserChat,
   type User,
   TABLES,
+  Chat,
 } from '../../database';
 import type { Pagination } from '../../types';
+import redis from '../../utilities/redis';
 
 export async function checkChatAccess(
   chatId: number,
@@ -255,6 +257,25 @@ export async function getChat(chatId: number): Promise<Result> {
   return result;
 }
 
+interface ChatUser {
+  id: number;
+  isOnline: boolean;
+  joinedChat: string;
+  login: string;
+}
+
+interface LatestMessage {
+  authorId: number;
+  authorLogin: string;
+  createdAt: string;
+  text: string;
+}
+
+interface GetChatsResult extends Chat {
+  latestMessage: LatestMessage | null;
+  users: ChatUser[];
+}
+
 export async function getChats(
   {
     pagination,
@@ -276,7 +297,7 @@ export async function getChats(
       },
     ),
     // TODO: possibly rewrite, optimize ordering
-    database.Instance.query<Result>(
+    database.Instance.query<GetChatsResult>(
       `SELECT
         c.*,
         (SELECT json_agg(message) FROM (
@@ -295,6 +316,8 @@ export async function getChats(
         (SELECT json_agg(users) FROM (
           SELECT
             u.id,
+            (CASE WHEN u.id = :userId THEN true ELSE false END) AS "isOnline",
+            ucc."createdAt" as "joinedChat",
             u.login
             FROM user_chats ucc LEFT JOIN users u ON ucc."userId" = u.id
             WHERE ucc."chatId" = c.id
@@ -318,10 +341,50 @@ export async function getChats(
     ),
   ]);
 
+  const userIds = results.reduce(
+    (array, item) => {
+      item.users.forEach((user) => {
+        if (user.id !== userId) {
+          array.push(user.id);
+        }
+      });
+      return array;
+    },
+    [] as number[],
+  );
+  const uniqueIds = [...new Set(userIds)];
+  const userDeviceKeys = await Promise.all(
+    uniqueIds.map(
+      (id: number): Promise<string[]> => redis.getKeys(redis.keyFormatter(
+        redis.PREFIXES.userDevice,
+        `${id}-*`,
+      )),
+    ),
+  );
+  const uniqueUserDeviceKeys = [...new Set(userDeviceKeys.flat())];
+  const onlineUserIds = uniqueUserDeviceKeys.map(
+    (userDeviceKey: string): number => Number(userDeviceKey.split('-').slice(-2)[0]),
+  );
+  const updatedResults = results.map((result: GetChatsResult): GetChatsResult => {
+    const updatedUsers = result.users.map((user: ChatUser): ChatUser => {
+      if (onlineUserIds.includes(user.id)) {
+        return {
+          ...user,
+          isOnline: true,
+        };
+      }
+      return user;
+    });
+    return {
+      ...result,
+      users: updatedUsers,
+    };
+  });
+
   return {
     limit: pagination.limit,
     currentPage: pagination.page,
-    results,
+    results: updatedResults,
     totalCount: Number(totalCount),
     totalPages: Math.ceil(totalCount / pagination.limit) || 1,
   };

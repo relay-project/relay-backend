@@ -21,8 +21,12 @@ export default async function handleFirstRequest({
     `${userId}-${deviceId}`,
   );
 
-  const registeredDevice = await redis.getValue(userDeviceKey);
-  if (!registeredDevice) {
+  const [registeredConnectionId, registeredDevice] = await Promise.all([
+    redis.getValue<string>(userDeviceKey),
+    redis.getValue<string>(connection.id),
+  ]);
+  if (!(registeredConnectionId
+    && registeredConnectionId === connection.id && registeredDevice)) {
     await Promise.all([
       redis.setValue(connection.id, userDeviceKey),
       redis.setValue(userDeviceKey, connection.id),
