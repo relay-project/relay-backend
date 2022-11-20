@@ -2,19 +2,24 @@ import { QueryTypes } from 'sequelize';
 import { Socket } from 'socket.io';
 
 import { CHAT_TYPES, EVENTS } from '../configuration';
-import database from '../database';
+import database, {
+  type Device,
+  TABLES,
+} from '../database';
 import redis from '../utilities/redis';
 
 interface FirstRequestOptions {
   connection: Socket;
   deviceId: string;
   userId: number;
+  userRoom: string;
 }
 
 export default async function handleFirstRequest({
   connection,
   deviceId,
   userId,
+  userRoom,
 }: FirstRequestOptions): Promise<boolean[] | null | void> {
   const userDeviceKey = redis.keyFormatter(
     redis.PREFIXES.userDevice,
@@ -32,6 +37,23 @@ export default async function handleFirstRequest({
       redis.setValue(userDeviceKey, connection.id),
     ]);
 
+    // notify other connected user devices
+    const deviceRecord = await database.singleRecordAction<Device>({
+      action: 'findOne',
+      condition: {
+        deviceId,
+        userId,
+      },
+      table: TABLES.devices,
+    });
+    if (deviceRecord) {
+      connection.to(userRoom).emit(
+        EVENTS.DEVICE_CONNECTED,
+        deviceRecord,
+      );
+    }
+
+    // TODO: make this work for group chats as well
     const targetIds: { userId: number }[] = await database.Instance.query(
       `WITH data AS (
         SELECT uc."chatId", c.type FROM user_chats uc

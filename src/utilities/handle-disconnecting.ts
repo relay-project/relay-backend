@@ -30,7 +30,6 @@ export default async function handleDisconnecting(
     ),
   );
   if (userDeviceKeys.length > 0) {
-    let deviceName = deviceId;
     const device = await database.singleRecordAction<Device>({
       action: 'findOne',
       condition: {
@@ -40,19 +39,14 @@ export default async function handleDisconnecting(
       table: TABLES.devices,
     });
     if (device) {
-      deviceName = device.deviceName;
+      await Promise.all(userDeviceKeys.map(async (key: string): Promise<void> => {
+        const otherConnectionId = await redis.getValue<string>(key);
+        connection.to(otherConnectionId).emit(
+          EVENTS.DEVICE_DISCONNECTED,
+          device,
+        );
+      }));
     }
-    await Promise.all(userDeviceKeys.map(async (key: string): Promise<void> => {
-      const otherConnectionId = await redis.getValue<string>(key);
-      connection.to(otherConnectionId).emit(
-        EVENTS.DEVICE_DISCONNECTED,
-        {
-          deviceId,
-          deviceName,
-          userId,
-        },
-      );
-    }));
     return null;
   }
 

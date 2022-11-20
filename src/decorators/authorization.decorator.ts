@@ -130,6 +130,7 @@ export default async function authorizationDecorator({
       connection,
       deviceId,
       userId,
+      userRoom,
     });
 
     return callback({
