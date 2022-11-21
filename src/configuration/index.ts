@@ -49,6 +49,7 @@ export const EVENTS = {
   INCOMING_CHAT_MESSAGE: 'incoming-chat-message',
   JOIN_ROOM: 'join-room',
   LEAVE_ROOM: 'leave-room',
+  LOGOUT: 'logout',
   RECOVERY_FINAL_STAGE: 'recovery-final-stage',
   RECOVERY_INITIAL_STAGE: 'recovery-inital-stage',
   ROOM_DELETE_MESSAGE: 'room-delete-message',

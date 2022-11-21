@@ -13,7 +13,7 @@ import {
   MIGRATIONS_ON_STARTUP,
   NODE_ENV,
 } from '../configuration';
-import log from '../utilities/logger';
+import log, { databaseLog } from '../utilities/logger';
 import runMigrations from './run-migrations';
 
 export { TABLES } from '../configuration';
@@ -61,7 +61,7 @@ class Database {
       dialect: 'postgres',
       host: DATABASE.host,
       logging: NODE_ENV === ENVS.development
-        ? log
+        ? databaseLog
         : false,
       password: DATABASE.password,
       port: DATABASE.port,

@@ -1,10 +1,9 @@
-import { Op, QueryTypes } from 'sequelize';
+import { QueryTypes } from 'sequelize';
 
 import { CHAT_TYPES } from '../../configuration';
 import database, {
   type Chat,
   type CountResult,
-  type Device,
   type Message,
   type PaginatedResult,
   type Result,
@@ -389,45 +388,6 @@ export async function getChats(
     totalCount: Number(totalCount),
     totalPages: Math.ceil(totalCount / pagination.limit) || 1,
   };
-}
-
-export async function getConnectedDevices({
-  deviceId,
-  userId,
-}: {
-  deviceId: string,
-  userId: number,
-}): Promise<Device[]> {
-  const currentUserDeviceKey = redis.keyFormatter(
-    redis.PREFIXES.userDevice,
-    `${userId}-${deviceId}`,
-  );
-  const connectedUserDeviceKeys = await redis.getKeys(
-    redis.keyFormatter(
-      redis.PREFIXES.userDevice,
-      `${userId}-*`,
-    ),
-  );
-  if (connectedUserDeviceKeys.length === 0) {
-    return [];
-  }
-  const filtered = connectedUserDeviceKeys.filter(
-    (key: string): boolean => key !== currentUserDeviceKey,
-  );
-  if (filtered.length === 0) {
-    return [];
-  }
-  const connectedDeviceIds = filtered.map(
-    (key: string): string => key.split('-').slice(-1)[0],
-  );
-  return database.Instance[TABLES.devices].findAll({
-    where: {
-      deviceId: {
-        [Op.in]: connectedDeviceIds,
-      },
-      userId,
-    },
-  });
 }
 
 export async function hideChat(

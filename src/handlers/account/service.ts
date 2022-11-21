@@ -1,5 +1,5 @@
 import { compare, hash } from 'scryptwrap';
-import type { Transaction } from 'sequelize';
+import { Op, type Transaction } from 'sequelize';
 
 import {
   composePayload,
@@ -7,10 +7,12 @@ import {
   createToken,
 } from '../../utilities/jwt';
 import database, {
+  type Device,
   type Password,
   type Secret,
   TABLES,
 } from '../../database';
+import redis from '../../utilities/redis';
 
 export async function compareHashes(
   plaintext: string,
@@ -46,6 +48,45 @@ export async function deleteAccount(userId: number): Promise<void> {
       id: userId,
     },
     table: TABLES.users,
+  });
+}
+
+export async function getConnectedDevices({
+  deviceId,
+  userId,
+}: {
+  deviceId: string,
+  userId: number,
+}): Promise<Device[]> {
+  const currentUserDeviceKey = redis.keyFormatter(
+    redis.PREFIXES.userDevice,
+    `${userId}-${deviceId}`,
+  );
+  const connectedUserDeviceKeys = await redis.getKeys(
+    redis.keyFormatter(
+      redis.PREFIXES.userDevice,
+      `${userId}-*`,
+    ),
+  );
+  if (connectedUserDeviceKeys.length === 0) {
+    return [];
+  }
+  const filtered = connectedUserDeviceKeys.filter(
+    (key: string): boolean => key !== currentUserDeviceKey,
+  );
+  if (filtered.length === 0) {
+    return [];
+  }
+  const connectedDeviceIds = filtered.map(
+    (key: string): string => key.split('-').slice(-1)[0],
+  );
+  return database.Instance[TABLES.devices].findAll({
+    where: {
+      deviceId: {
+        [Op.in]: connectedDeviceIds,
+      },
+      userId,
+    },
   });
 }
 

@@ -9,9 +9,18 @@ import {
 
 const logger = new Console(process.stdout, process.stderr);
 
-export default function log(...message: any[]): void {
+function createTimestamp(): string {
+  return chalk.dim(chalk.green(`[${APPLICATION_NAME} - ${new Date().toISOString()}]`));
+}
+
+export function databaseLog(...message: unknown[]): void {
   if (NODE_ENV === ENVS.development) {
-    logger.log(`${chalk.dim(chalk.green(`[${
-      APPLICATION_NAME} - ${new Date().toISOString()}]`))} ${message}`);
+    logger.log(`${createTimestamp()} ${chalk.dim(message)}`);
+  }
+}
+
+export default function log(...message: unknown[]): void {
+  if (NODE_ENV === ENVS.development) {
+    logger.log(`${createTimestamp()} ${message}`);
   }
 }
