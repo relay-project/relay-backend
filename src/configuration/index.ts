@@ -47,6 +47,7 @@ export const EVENTS = {
   GET_CONNECTED_DEVICES: 'get-connected-devices',
   HIDE_CHAT: 'hide-chat',
   INCOMING_CHAT_MESSAGE: 'incoming-chat-message',
+  INCOMING_LATEST_MESSAGE: 'incoming-latest-message',
   JOIN_ROOM: 'join-room',
   LEAVE_ROOM: 'leave-room',
   LOGOUT: 'logout',
