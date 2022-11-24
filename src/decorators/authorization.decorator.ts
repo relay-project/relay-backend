@@ -11,7 +11,7 @@ import database, {
   type User,
   TABLES,
 } from '../database';
-import type { HandlerData, Pagination } from '../types';
+import type { HandlerData } from '../types';
 import redis from '../utilities/redis';
 import response from '../utilities/response';
 import {
@@ -25,7 +25,6 @@ type AuthorizationDecoratorOptions = Omit<HandlerData, 'userId'> & {
   callback: (options: HandlerData) => Promise<boolean>;
   checkAdmin?: boolean;
   event: string;
-  pagination?: Pagination;
 }
 
 export default async function authorizationDecorator({
@@ -35,6 +34,7 @@ export default async function authorizationDecorator({
   event,
   pagination = null,
   payload,
+  server,
 }: AuthorizationDecoratorOptions): Promise<boolean> {
   try {
     const { token = '', ...payloadWithoutToken } = payload;
@@ -138,6 +138,7 @@ export default async function authorizationDecorator({
       deviceId,
       payload: payloadWithoutToken,
       pagination,
+      server,
       userId,
     });
   } catch (error) {

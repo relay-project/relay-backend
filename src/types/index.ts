@@ -1,4 +1,4 @@
-import type { Socket } from 'socket.io';
+import type { Server, Socket } from 'socket.io';
 
 export interface Connection extends Socket {
   isFirstRequest: boolean;
@@ -22,5 +22,6 @@ export interface HandlerData {
   deviceId?: string;
   pagination?: Pagination;
   payload?: Payload;
+  server: Server,
   userId?: number;
 }

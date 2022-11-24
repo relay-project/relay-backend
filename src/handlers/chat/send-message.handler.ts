@@ -21,6 +21,7 @@ export const event = EVENTS.SEND_MESSAGE;
 export async function handler({
   connection,
   payload,
+  server,
   userId,
 }: HandlerData): Promise<boolean> {
   try {
@@ -46,7 +47,8 @@ export async function handler({
     }
 
     const { message } = await service.saveMessage(userId, chatId, text);
-    connection.to(createRoomID(ROOM_PREFIXES.chat, chatId)).emit(
+    const roomId = createRoomID(ROOM_PREFIXES.chat, chatId);
+    connection.to(roomId).emit(
       EVENTS.INCOMING_CHAT_MESSAGE,
       {
         ...message,
@@ -54,8 +56,16 @@ export async function handler({
       },
     );
 
-    // TODO: send message & notification to the Chats page
-    // TODO: notify users who had this chat hidden
+    const roomSet = server.sockets.adapter.rooms.get(roomId);
+    if (roomSet) {
+      const roomConnectionIds = [...roomSet].filter(
+        (connectionId: string): boolean => connectionId !== connection.id,
+      );
+      // TODO: send message & notification to the Chats page
+      // TODO: notify users who had this chat hidden
+
+      console.log(roomConnectionIds);
+    }
 
     return response({
       connection,

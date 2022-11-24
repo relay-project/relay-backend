@@ -1,5 +1,5 @@
 import { readdir } from 'node:fs/promises';
-import type { Socket } from 'socket.io';
+import type { Server, Socket } from 'socket.io';
 
 import authorizationDecorator from '../decorators/authorization.decorator';
 import calculateOffset from '../utilities/calculate-offset';
@@ -69,7 +69,7 @@ class Router {
     return log(`event handlers loaded: ${counter}`);
   }
 
-  registerHandlers(connection: Socket): void {
+  registerHandlers(connection: Socket, server: Server): void {
     this.handlers.forEach(({
       authorize,
       checkAdmin,
@@ -101,12 +101,14 @@ class Router {
               event,
               pagination,
               payload: payloadWithoutPagination,
+              server,
             });
           }
           return handler({
             connection,
             pagination,
             payload: payloadWithoutPagination,
+            server,
           });
         },
       );

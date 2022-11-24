@@ -34,7 +34,7 @@ export default async function createServer(): Promise<void> {
     (connection: Socket): void => {
       log(`connected ${connection.id}`);
 
-      router.registerHandlers(connection);
+      router.registerHandlers(connection, server);
       connection.on(
         EVENTS.DISCONNECTING,
         (): Promise<void> => handleDisconnecting(connection),
