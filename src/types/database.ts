@@ -48,6 +48,7 @@ export interface User extends Base {
 export interface UserChat extends Base {
   chatHidden: boolean;
   chatId: number;
+  newMessages: number;
   userId: number;
 }
 

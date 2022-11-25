@@ -26,6 +26,10 @@ export const createModel = (connection: Sequelize): ModelStatic<Model> => {
         },
         type: DataTypes.INTEGER,
       },
+      newMessages: {
+        defaultValue: 0,
+        type: DataTypes.INTEGER,
+      },
       userId: {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
