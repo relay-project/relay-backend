@@ -48,6 +48,7 @@ export const EVENTS = {
   HIDE_CHAT: 'hide-chat',
   INCOMING_CHAT_MESSAGE: 'incoming-chat-message',
   INCOMING_LATEST_MESSAGE: 'incoming-latest-message',
+  INCOMING_SHOW_HIDDEN_CHAT: 'incoming-show-hidden-chat',
   JOIN_ROOM: 'join-room',
   LEAVE_ROOM: 'leave-room',
   LOGOUT: 'logout',

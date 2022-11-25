@@ -1,4 +1,4 @@
-import { QueryTypes } from 'sequelize';
+import { Op, QueryTypes } from 'sequelize';
 
 import { CHAT_TYPES } from '../../configuration';
 import database, {
@@ -300,6 +300,7 @@ export async function getChats(
     database.Instance.query<GetChatsResult>(
       `SELECT
         c.*,
+        uc."newMessages",
         (SELECT json_agg(message) FROM (
           SELECT
             m."authorId",
@@ -390,6 +391,73 @@ export async function getChats(
   };
 }
 
+interface GetLatestMessageUsers {
+  chatId: number;
+  roomConnectionIds: string[];
+  userId: number;
+}
+
+interface UserDetails {
+  chatHidden: boolean;
+  connectionIds: string[];
+  isInTheRoom: boolean;
+  isOnline: boolean;
+  newMessages: number;
+  userDeviceKeys: string[];
+  userId: number;
+}
+
+export async function getUserDetails({
+  chatId,
+  roomConnectionIds,
+  userId,
+}: GetLatestMessageUsers): Promise<UserDetails[]> {
+  const userChats: UserChat[] = await database.Instance[TABLES.userChats].findAll({
+    where: {
+      chatId,
+      userId: {
+        [Op.ne]: userId,
+      },
+    },
+  });
+
+  const userDetails = userChats.map((userChat: UserChat): UserDetails => ({
+    chatHidden: userChat.chatHidden,
+    connectionIds: [],
+    isInTheRoom: false,
+    isOnline: false,
+    newMessages: userChat.newMessages,
+    userDeviceKeys: [],
+    userId: userChat.userId,
+  }));
+
+  await Promise.all(
+    userDetails.map(
+      async (details: UserDetails, index: number): Promise<void> => {
+        const keys = await redis.getKeys(
+          redis.keyFormatter(
+            redis.PREFIXES.userDevice,
+            `${details.userId}-*`,
+          ),
+        );
+        if (keys.length > 0) {
+          const connectionIds = await Promise.all(
+            keys.map((key: string): Promise<string> => redis.getValue(key)),
+          );
+          userDetails[index].connectionIds = connectionIds;
+          userDetails[index].isInTheRoom = roomConnectionIds.some(
+            (connectionId: string): boolean => connectionIds.includes(connectionId),
+          );
+          userDetails[index].isOnline = true;
+          userDetails[index].userDeviceKeys = keys;
+        }
+      },
+    ),
+  );
+
+  return userDetails;
+}
+
 export async function hideChat(
   chatId: number,
   userId: number,
@@ -407,11 +475,38 @@ export async function hideChat(
   );
 }
 
+export async function incrementMessageCountAndShowChat(
+  userId: number,
+  chatId: number,
+  count: UserDetails[],
+): Promise<void[]> {
+  return Promise.all(
+    count.map(
+      (
+        details: UserDetails,
+      ): Promise<void> => database.Instance[TABLES.userChats].update(
+        {
+          chatHidden: false,
+          newMessages: details.newMessages + 1,
+        },
+        {
+          where: {
+            chatId,
+            userId: {
+              [Op.ne]: userId,
+            },
+          },
+        },
+      ),
+    ),
+  );
+}
+
 export async function saveMessage(
   authorId: number,
   chatId: number,
   text: string,
-): Promise<{ hiddenChats: number[], message: Result }> {
+): Promise<{ message: Result }> {
   const transaction = await database.createTransaction();
   try {
     const message = await database.Instance[TABLES.messages].create(
@@ -424,47 +519,21 @@ export async function saveMessage(
         transaction,
       },
     );
-    const [[result], hiddenChats] = await Promise.all([
-      database.Instance.query<Result>(
-        `SELECT m.*, u.login FROM messages m
-          LEFT JOIN users u on m."authorId" = u.id
-          WHERE m.id = :messageId;
-        `,
-        {
-          replacements: {
-            messageId: message.id,
-          },
-          transaction,
-          type: QueryTypes.SELECT,
+    const [result] = await database.Instance.query<Result>(
+      `SELECT m.*, u.login FROM messages m
+        LEFT JOIN users u on m."authorId" = u.id
+        WHERE m.id = :messageId;
+      `,
+      {
+        replacements: {
+          messageId: message.id,
         },
-      ),
-      database.Instance[TABLES.userChats].findAll({
         transaction,
-        where: {
-          chatHidden: true,
-          chatId,
-        },
-      }),
-    ]);
-    if (hiddenChats.length > 0) {
-      await database.Instance[TABLES.userChats].update(
-        {
-          chatHidden: false,
-        },
-        {
-          transaction,
-          where: {
-            chatId,
-          },
-        },
-      );
-    }
+        type: QueryTypes.SELECT,
+      },
+    );
     await transaction.commit();
-
     return {
-      hiddenChats: hiddenChats.map(
-        (chat: UserChat): number => chat.userId,
-      ),
       message: {
         ...result,
         isAuthor: true,

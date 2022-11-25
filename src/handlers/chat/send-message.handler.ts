@@ -15,6 +15,16 @@ interface SendMessagePayload {
   text: string;
 }
 
+interface UserDetails {
+  chatHidden: boolean;
+  connectionIds: string[];
+  isInTheRoom: boolean;
+  isOnline: boolean;
+  newMessages: number;
+  userDeviceKeys: string[];
+  userId: number;
+}
+
 export const authorize = true;
 export const event = EVENTS.SEND_MESSAGE;
 
@@ -61,10 +71,58 @@ export async function handler({
       const roomConnectionIds = [...roomSet].filter(
         (connectionId: string): boolean => connectionId !== connection.id,
       );
-      // TODO: send message & notification to the Chats page
-      // TODO: notify users who had this chat hidden
+      const details = await service.getUserDetails({
+        chatId,
+        roomConnectionIds,
+        userId,
+      });
+      const [count, notify, showChat]: UserDetails[][] = details.reduce(
+        (arrayOfArrays, data) => {
+          if (!data.isInTheRoom) {
+            arrayOfArrays[0].push(data);
+          }
+          if (!data.chatHidden && !data.isInTheRoom && data.isOnline) {
+            arrayOfArrays[1].push(data);
+          }
+          if (data.chatHidden && data.isOnline) {
+            arrayOfArrays[2].push(data);
+          }
+          return arrayOfArrays;
+        },
+        [[], [], []],
+      );
+      await service.incrementMessageCountAndShowChat(userId, chatId, count);
+      notify.forEach((data: UserDetails): void => {
+        data.connectionIds.forEach((connectionId: string): void => {
+          connection.to(connectionId).emit(
+            EVENTS.INCOMING_LATEST_MESSAGE,
+            {
+              ...message,
+              isAuthor: false,
+              newMessages: data.newMessages + 1,
+            },
+          );
+        });
+      });
 
-      console.log(roomConnectionIds);
+      if (showChat.length > 0) {
+        const chat = await service.getChat(chatId);
+        showChat.forEach((data: UserDetails): void => {
+          data.connectionIds.forEach((connectionId: string): void => {
+            connection.to(connectionId).emit(
+              EVENTS.INCOMING_SHOW_HIDDEN_CHAT,
+              {
+                ...chat,
+                latestMessage: {
+                  ...message,
+                  isAuthor: false,
+                  newMessages: data.newMessages + 1,
+                },
+              },
+            );
+          });
+        });
+      }
     }
 
     return response({
