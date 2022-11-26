@@ -116,8 +116,8 @@ export async function handler({
                 latestMessage: {
                   ...message,
                   isAuthor: false,
-                  newMessages: data.newMessages + 1,
                 },
+                newMessages: data.newMessages + 1,
               },
             );
           });
